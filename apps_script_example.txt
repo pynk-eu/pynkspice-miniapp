@@ -1,0 +1,22 @@
+
+// Google Apps Script: Append Review to Sheet Web App
+// 1) Create a new Google Apps Script (https://script.google.com).
+// 2) Replace the SHEET_ID and SHEET_NAME below.
+// 3) Deploy -> New deployment -> Select "Web app" -> Execute as: Me; Who has access: Anyone (even anonymous)
+// 4) Copy the Web app URL and paste it into helpers.js CONFIG.REVIEW_POST_URL
+//
+// Sample code:
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.openById('REPLACE_WITH_SHEET_ID');
+    var sheet = ss.getSheetByName('Reviews');
+    var data = JSON.parse(e.postData.contents);
+    var name = data.name || 'Anon';
+    var review = data.review_en || data.review || '';
+    var rating = data.rating || '';
+    sheet.appendRow([new Date(), name, review, '', rating]);
+    return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status:'error',message:err.message})).setMimeType(ContentService.MimeType.JSON);
+  }
+}

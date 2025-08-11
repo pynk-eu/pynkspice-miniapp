@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Pynk Spice — Mini App</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="top">
+      <div class="title">🍽️ The Pynk Spice</div>
+      <div class="lang-switch">
+        <button id="lang-en" class="lang-btn active">EN</button>
+        <button id="lang-de" class="lang-btn">DE</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="menu">Menu</button>
+      <button class="tab" data-tab="reviews">Reviews</button>
+      <button class="tab" data-tab="orders">Orders</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </nav>
+
+    <main id="main">
+      <div id="loading" class="center">Loading…</div>
+      <div id="menu" class="view hidden"></div>
+      <div id="details" class="view hidden"></div>
+      <div id="reviews" class="view hidden"></div>
+      <div id="orders" class="view hidden"></div>
+      <div id="settings" class="view hidden"></div>
+    </main>
+
+    <footer class="footer">
+      <div id="cart-summary">Cart: <span id="cart-count">0</span> items — <span id="cart-total">€0.00</span></div>
+      <div class="footer-actions">
+        <button id="view-cart">View Cart</button>
+        <button id="checkout">Checkout</button>
+      </div>
+    </footer>
+  </div>
+
+  <template id="menu-card-tpl">
+    <div class="card">
+      <img class="card-img" src="" alt="">
+      <div class="card-body">
+        <div class="card-title"></div>
+        <div class="card-qty"></div>
+        <div class="card-price"></div>
+        <div class="card-actions">
+          <button class="add-cart"></button>
+          <button class="buy-now"></button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="helpers.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
