@@ -31,6 +31,3 @@ function openDetails(item){ detailsView.innerHTML=`<img class="detail-img" src="
 function showView(id){ document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); window.scrollTo(0,0); }
 
 function addToCart(item, qty=1){ const existing=state.cart.find(i=>i.id===item.id); if(existing){ existing.qty+=qty; } else { state.cart.push({id:item.id, name:item['name_'+state.lang]||item.name_en, price:parseFloat(item.price||0), qty}); } updateCartSummary(); alert((t('add_to_cart')||'Added to cart')+': '+(item['name_'+state.lang]||item.name_en)); }
-
-def updateCartSummary_placeholder(): pass
-# (placeholder removed for python execution; actual JS function is in the app code)
