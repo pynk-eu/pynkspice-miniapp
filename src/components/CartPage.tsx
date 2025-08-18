@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { useCart } from '@/contexts/CartContext';
@@ -88,7 +88,7 @@ export default function CartPage() {
         {cart.map((item: CartItem) => (
                   <li key={item.id} className="py-4 flex items-center gap-4">
                     <div className="relative w-20 h-16 shrink-0 overflow-hidden rounded-md ring-1 ring-gray-100">
-          <Image src={item.images[0]} alt={item.name[lang]} fill className="object-cover" />
+          <SafeImage src={item.images[0]} alt={item.name[lang]} fill className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
           <p className="font-medium text-gray-900 truncate">{item.name[lang]}</p>

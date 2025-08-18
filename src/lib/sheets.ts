@@ -51,6 +51,49 @@ export function parseCSV(csv: string): string[][] {
   return rows;
 }
 
+// Convert Google Drive sharing links to direct embeddable image URLs.
+function normalizeDriveImageUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const host = u.hostname;
+    const h = host.toLowerCase();
+
+    // Already a direct googleusercontent link – keep as-is
+    if (h.endsWith('googleusercontent.com')) return url;
+    console.log('Normalizing Drive image URL:', url);
+    // drive.google.com patterns
+    if (h === 'drive.google.com') {
+      // Pattern: /file/d/<id>/view or /file/d/<id>/preview
+      const fileIdx = u.pathname.split('/').indexOf('file');
+      if (fileIdx !== -1) {
+        const parts = u.pathname.split('/');
+        const dIdx = parts.indexOf('d');
+        if (dIdx !== -1 && parts[dIdx + 1]) {
+          const id = parts[dIdx + 1];
+          // Use thumbnail endpoint for a reliable direct image response
+          return `https://drive.google.com/thumbnail?id=${id}&sz=w2000`;
+        }
+      }
+
+      // Pattern: /open?id=<id>
+      const openId = u.searchParams.get('id');
+      if (openId) {
+        return `https://drive.google.com/thumbnail?id=${openId}&sz=w2000`;
+      }
+
+      // Pattern: /uc?id=<id>&export=...  – normalize to export=view
+      if (u.pathname === '/uc') {
+        const id = u.searchParams.get('id');
+        if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w2000`;
+      }
+    }
+
+    return url;
+  } catch {
+    return url;
+  }
+}
+
 // Helper: get revalidate seconds from env or default to 60s
 const MENU_REVALIDATE_SECONDS = (() => {
   const v = process.env.MENU_REVALIDATE_SECONDS;
@@ -92,7 +135,8 @@ export async function fetchMenuFromPublishedCSV(url: string): Promise<MenuItem[]
     const image_urls = (get(record, 'image_urls') || '')
       .split(',')
       .map((s) => s.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .map(normalizeDriveImageUrl);
     const maxQuantityRaw = get(record, 'max_quantity');
     const maxQuantity = maxQuantityRaw === '' || maxQuantityRaw == null ? undefined : Number(maxQuantityRaw) || -1;
 
