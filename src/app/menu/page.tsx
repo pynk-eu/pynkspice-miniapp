@@ -1,7 +1,5 @@
 import { getMenuItems } from '@/lib/data';
 import MenuItemCard from '@/components/MenuItemCard';
-import { useMessages } from '@/hooks/useMessages';
-import { useLang } from '@/contexts/LangContext';
 
 export default async function MenuPage() {
   const menuItems = await getMenuItems();

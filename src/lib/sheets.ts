@@ -51,8 +51,16 @@ export function parseCSV(csv: string): string[][] {
   return rows;
 }
 
+// Helper: get revalidate seconds from env or default to 60s
+const MENU_REVALIDATE_SECONDS = (() => {
+  const v = process.env.MENU_REVALIDATE_SECONDS;
+  const n = v ? Number(v) : NaN;
+  return Number.isFinite(n) && n >= 0 ? n : 60;
+})();
+
 export async function fetchMenuFromPublishedCSV(url: string): Promise<MenuItem[]> {
-  const res = await fetch(url, { cache: 'no-store' });
+  // Use Next.js enhanced fetch with ISR so build does not fail due to dynamic no-store fetch.
+  const res = await fetch(url, { next: { revalidate: MENU_REVALIDATE_SECONDS } });
   if (!res.ok) throw new Error(`Failed to fetch menu CSV: ${res.status}`);
   const text = await res.text();
   const rows = parseCSV(text).filter((r) => r.length && r.some((c) => c.trim() !== ''));
@@ -86,7 +94,7 @@ export async function fetchMenuFromPublishedCSV(url: string): Promise<MenuItem[]
       .map((s) => s.trim())
       .filter(Boolean);
     const maxQuantityRaw = get(record, 'max_quantity');
-    const maxQuantity = maxQuantityRaw === '' || maxQuantityRaw == null ? undefined : Number(maxQuantityRaw);
+    const maxQuantity = maxQuantityRaw === '' || maxQuantityRaw == null ? undefined : Number(maxQuantityRaw) || -1;
 
     const images = image_urls.length ? image_urls : ['/thePynkSpice_logo.jpg'];
 
