@@ -1,0 +1,126 @@
+import type { MenuItem } from '@/types/index';
+
+// Very small CSV parser that supports quoted fields and commas inside quotes
+export function parseCSV(csv: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < csv.length; i++) {
+    const char = csv[i];
+    const next = csv[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        cell += '"'; // Escaped quote
+        i++; // skip next
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (!inQuotes && char === ',') {
+      row.push(cell);
+      cell = '';
+      continue;
+    }
+
+    if (!inQuotes && (char === '\n' || char === '\r')) {
+      if (cell.length > 0 || row.length > 0) {
+        row.push(cell);
+        rows.push(row);
+        row = [];
+        cell = '';
+      }
+      // swallow consecutive \r\n
+      if (char === '\r' && next === '\n') i++;
+      continue;
+    }
+
+    cell += char;
+  }
+
+  // push last cell/row
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+export async function fetchMenuFromPublishedCSV(url: string): Promise<MenuItem[]> {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch menu CSV: ${res.status}`);
+  const text = await res.text();
+  const rows = parseCSV(text).filter((r) => r.length && r.some((c) => c.trim() !== ''));
+  if (rows.length < 2) return [];
+
+  const header = rows[0].map((h) => h.trim().toLowerCase());
+  const get = (obj: Record<string, string>, key: string) => obj[key] ?? '';
+
+  const items: MenuItem[] = rows.slice(1).map((r) => {
+    const record: Record<string, string> = {};
+    header.forEach((h, idx) => {
+      record[h] = r[idx] ?? '';
+    });
+
+    const id = Number(get(record, 'id')) || Date.now();
+    const name_en = get(record, 'name_en') || get(record, 'name') || 'Item';
+    const name_de = get(record, 'name_de') || name_en;
+    const description_en = get(record, 'description_en') || get(record, 'description') || '';
+    const description_de = get(record, 'description_de') || description_en;
+    const ingredients_en = (get(record, 'ingredients_en') || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const ingredients_de = (get(record, 'ingredients_de') || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const price = Number(get(record, 'price')) || 0;
+    const image_urls = (get(record, 'image_urls') || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const maxQuantityRaw = get(record, 'max_quantity');
+    const maxQuantity = maxQuantityRaw === '' || maxQuantityRaw == null ? undefined : Number(maxQuantityRaw);
+
+    const images = image_urls.length ? image_urls : ['/thePynkSpice_logo.jpg'];
+
+    const item: MenuItem = {
+      id,
+      name: { en: name_en, de: name_de },
+      description: { en: description_en, de: description_de },
+      ingredients: { en: ingredients_en, de: ingredients_de },
+      price,
+      images,
+      maxQuantity,
+    };
+
+    return item;
+  });
+
+  return items;
+}
+
+export type OrderPayload = {
+  items: Array<{ id: number; name: string; price: number; quantity: number }>;
+  fulfillment: 'pickup' | 'delivery';
+  address?: string;
+  notes?: string;
+  total: number;
+  timestamp?: string;
+};
+
+// This posts order data to a Google Apps Script Web App (or any webhook) URL provided via env.
+export async function postOrderToWebhook(url: string, payload: OrderPayload): Promise<Response> {
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    cache: 'no-store',
+  });
+}
