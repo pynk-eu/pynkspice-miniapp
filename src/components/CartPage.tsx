@@ -9,10 +9,13 @@ import type { CartItem } from '@/types/index';
 import { useLang } from '@/contexts/LangContext';
 import { useMessages } from '@/hooks/useMessages';
 
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-4 md:p-6">
+const Section = ({ title, children, disabled = false }: { title: string; children: React.ReactNode; disabled?: boolean }) => (
+  <section
+    className={`bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-4 md:p-6 ${disabled ? 'opacity-60' : ''}`}
+    aria-disabled={disabled}
+  >
     <h2 className="text-lg font-semibold text-gray-900 mb-3">{title}</h2>
-    {children}
+    <div className={disabled ? 'pointer-events-none select-none' : undefined}>{children}</div>
   </section>
 );
 
@@ -30,6 +33,7 @@ export default function CartPage() {
   );
 
   const canCheckout = cart.length > 0;
+  const formDisabled = !canCheckout;
 
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -104,7 +108,7 @@ export default function CartPage() {
             )}
           </Section>
 
-          <Section title={t('cart.preferences', lang === 'de' ? 'Präferenzen' : 'Preferences')}>
+          <Section title={t('cart.preferences', lang === 'de' ? 'Präferenzen' : 'Preferences')} disabled={formDisabled}>
             <div className="space-y-4">
               <div className="flex items-center gap-6">
                 <label className="inline-flex items-center gap-2">
@@ -114,6 +118,7 @@ export default function CartPage() {
                     value="pickup"
                     checked={fulfillment === 'pickup'}
                     onChange={() => setFulfillment('pickup')}
+                    disabled={formDisabled}
                     className="text-pink-600 focus:ring-pink-600"
                   />
                   <span>{t('cart.pickup', lang === 'de' ? 'Abholung' : 'Pickup')}</span>
@@ -125,6 +130,7 @@ export default function CartPage() {
                     value="delivery"
                     checked={fulfillment === 'delivery'}
                     onChange={() => setFulfillment('delivery')}
+                    disabled={formDisabled}
                     className="text-pink-600 focus:ring-pink-600"
                   />
                   <span>{t('cart.delivery', lang === 'de' ? 'Lieferung' : 'Delivery')}</span>
@@ -137,6 +143,7 @@ export default function CartPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder={t('cart.address', lang === 'de' ? 'Lieferadresse' : 'Delivery address')}
+                  disabled={formDisabled}
                   className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
                 />
               )}
@@ -145,6 +152,7 @@ export default function CartPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t('cart.notes', lang === 'de' ? 'Notizen hinzufügen (Schärfegrad, ohne Zwiebel/Knoblauch, etc.)' : 'Add notes (spice level, no onion/garlic, etc.)')}
+                disabled={formDisabled}
                 className="w-full min-h-28 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
               />
             </div>
