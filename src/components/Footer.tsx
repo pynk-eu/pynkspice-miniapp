@@ -1,14 +1,55 @@
 const Footer = () => {
   return (
-    <footer className="w-full bg-gray-800 text-white p-4 mt-8">
-      <div className="container mx-auto text-center">
-        <p>&copy; {new Date().getFullYear()} The PynkSpice. All Rights Reserved.</p>
-        <p>
-          <a href="https://www.instagram.com/thepynkspice" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400">
-            Follow us on Instagram
-          </a>
-        </p>
-        <p>Contact: contact@thepynkspice.com</p>
+    <footer className="w-full bg-gray-900 text-white mt-10">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <a
+              href="https://www.instagram.com/thepynkspice"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="p-2 rounded-full bg-white/10 hover:bg-pink-600/80 transition"
+              title="Instagram"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.056 1.97.24 2.427.403a4.92 4.92 0 0 1 1.78 1.153 4.92 4.92 0 0 1 1.153 1.78c.163.457.347 1.257.403 2.427.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.056 1.17-.24 1.97-.403 2.427a4.92 4.92 0 0 1-1.153 1.78 4.92 4.92 0 0 1-1.78 1.153c-.457.163-1.257.347-2.427.403-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.17-.056-1.97-.24-2.427-.403a4.92 4.92 0 0 1-1.78-1.153 4.92 4.92 0 0 1-1.153-1.78c-.163-.457-.347-1.257-.403-2.427C2.175 15.584 2.163 15.204 2.163 12s.012-3.584.07-4.85c.056-1.17.24-1.97.403-2.427a4.92 4.92 0 0 1 1.153-1.78 4.92 4.92 0 0 1 1.78-1.153c.457-.163 1.257-.347 2.427-.403C8.416 2.175 8.796 2.163 12 2.163zm0 1.622c-3.16 0-3.532.012-4.777.069-.999.046-1.541.213-1.9.355-.478.186-.82.408-1.178.766-.358.358-.58.7-.766 1.178-.142.359-.309.901-.355 1.9-.057 1.245-.069 1.617-.069 4.777s.012 3.532.069 4.777c.046.999.213 1.541.355 1.9.186.478.408.82.766 1.178.358.358.7.58 1.178.766.359.142.901.309 1.9.355 1.245.057 1.617.069 4.777.069s3.532-.012 4.777-.069c.999-.046 1.541-.213 1.9-.355.478-.186.82-.408 1.178-.766.358-.358.58-.7.766-1.178.142-.359.309-.901.355-1.9.057-1.245.069-1.617.069-4.777s-.012-3.532-.069-4.777c-.046-.999-.213-1.541-.355-1.9a3.297 3.297 0 0 0-.766-1.178 3.297 3.297 0 0 0-1.178-.766c-.359-.142-.901-.309-1.9-.355-1.245-.057-1.617-.069-4.777-.069zm0 3.905a5.31 5.31 0 1 1 0 10.62 5.31 5.31 0 0 1 0-10.62zm0 1.622a3.688 3.688 0 1 0 0 7.376 3.688 3.688 0 0 0 0-7.376zm5.406-.99a1.239 1.239 0 1 1 0 2.478 1.239 1.239 0 0 1 0-2.478z" />
+              </svg>
+            </a>
+            <a
+              href="mailto:thepynkspice@gmail.com"
+              aria-label="Email"
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+              title="Email"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M1.5 6.75A2.25 2.25 0 013.75 4.5h16.5A2.25 2.25 0 0122.5 6.75v10.5A2.25 2.25 0 0120.25 19.5H3.75A2.25 2.25 0 011.5 17.25V6.75zm2.25-.75a.75.75 0 00-.75.75v.334l9 5.4 9-5.4V6.75a.75.75 0 00-.75-.75H3.75zm18 3.012l-8.598 5.158a2.25 2.25 0 01-2.304 0L2.25 9.012v8.238c0 .414.336.75.75.75h16.5a.75.75 0 00.75-.75V9.012z" /></svg>
+            </a>
+            <a
+              href="https://wa.me/491798299602"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="p-2 rounded-full bg-white/10 hover:bg-emerald-600/80 transition"
+              title="WhatsApp"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.326 5.486 0 12.056 0c3.182 0 6.167 1.24 8.413 3.488a11.82 11.82 0 013.485 8.414c-.003 6.572-5.329 11.9-11.9 11.9-1.99 0-3.951-.5-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.593 5.448.003 9.886-4.431 9.889-9.88.002-5.462-4.416-9.89-9.88-9.894-5.45-.004-9.887 4.43-9.89 9.88a9.82 9.82 0 001.6 5.322l-.999 3.648 3.888-.97zM8.1 7.4c.172-.384.377-.392.553-.4.144-.007.31-.007.477-.007.163 0 .42-.06.64.306.22.367.75 1.233.817 1.322.067.09.112.203.022.327-.09.123-.135.2-.267.322-.135.12-.282.27-.403.363-.135.097-.277.204-.12.398.157.195.7 1.152 1.505 1.867 1.036.923 1.91 1.21 2.205 1.347.294.135.465.12.637-.075.172-.195.735-.855.933-1.148.198-.292.397-.247.67-.148.272.098 1.72.812 2.015.958.294.146.487.218.56.337.075.12.075.69-.165 1.35-.24.66-1.54 1.54-2.1 1.635-.56.097-1.263.135-2.047-.127-.783-.262-1.8-.74-2.966-1.817-1.095-.994-1.83-2.22-2.044-2.59-.213-.368-.227-.53-.152-.725.075-.195.3-.48.473-.675.172-.195.375-.45.562-.525z" /></svg>
+            </a>
+            <a
+              href="https://t.me/thePynkSpice"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Telegram"
+              className="p-2 rounded-full bg-white/10 hover:bg-sky-600/80 transition"
+              title="Telegram"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M9.964 15.569l-.397 5.59c.568 0 .813-.244 1.107-.537l2.663-2.557 5.521 4.037c1.012.56 1.733.266 2.006-.935l3.63-17.012h.001c.323-1.514-.548-2.104-1.534-1.74L1.71 9.69c-1.47.571-1.448 1.39-.25 1.756l5.53 1.725 12.851-8.104c.605-.368 1.157-.164.704.204L9.964 15.569z" /></svg>
+            </a>
+          </div>
+          <div className="text-xs text-gray-300 text-center sm:text-left">
+            <p className="leading-tight">&copy; {new Date().getFullYear()} The PynkSpice</p>
+            {/* <p className="leading-tight opacity-80">Authentic Indian Vegetarian Cuisine</p> */}
+          </div>
+        </div>
       </div>
     </footer>
   );
