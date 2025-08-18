@@ -88,7 +88,7 @@ export default function CartPage() {
         {cart.map((item: CartItem) => (
                   <li key={item.id} className="py-4 flex items-center gap-4">
                     <div className="relative w-20 h-16 shrink-0 overflow-hidden rounded-md ring-1 ring-gray-100">
-          <SafeImage src={item.images[0]} alt={item.name[lang]} fill className="object-cover" />
+          <SafeImage src={item.images[0]} alt={item.name[lang]} className="absolute inset-0 w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
           <p className="font-medium text-gray-900 truncate">{item.name[lang]}</p>

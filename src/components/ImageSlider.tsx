@@ -10,7 +10,7 @@ export default function ImageSlider({ images, alt }: { images: string[]; alt: st
   const prev = () => setIdx((i) => (i - 1 + images.length) % images.length);
   return (
     <div className="absolute inset-0">
-      <SafeImage src={images[idx]} alt={alt} fill className="object-cover" />
+      <SafeImage src={images[idx]} alt={alt} className="absolute inset-0 w-full h-full object-cover" />
       {images.length > 1 && (
         <>
           <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow">

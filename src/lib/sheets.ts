@@ -52,7 +52,7 @@ export function parseCSV(csv: string): string[][] {
 }
 
 // Convert Google Drive sharing links to direct embeddable image URLs.
-function normalizeDriveImageUrl(url: string): string {
+export function normalizeDriveImageUrl(url: string): string {
   try {
     const u = new URL(url);
     const host = u.hostname;
