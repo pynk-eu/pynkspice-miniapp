@@ -60,7 +60,6 @@ export function normalizeDriveImageUrl(url: string): string {
 
     // Already a direct googleusercontent link – keep as-is
     if (h.endsWith('googleusercontent.com')) return url;
-    console.log('Normalizing Drive image URL:', url);
     // drive.google.com patterns
     if (h === 'drive.google.com') {
       // Pattern: /file/d/<id>/view or /file/d/<id>/preview
