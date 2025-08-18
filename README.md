@@ -1,3 +1,51 @@
+# The PynkSpice Mini App
+
+This Next.js app displays a vegetarian menu and lets users place orders.
+
+## Google Sheets integration
+
+You can populate the menu via a published Google Sheet (as CSV) and send orders to a Google Apps Script Web App or any webhook.
+
+### Environment variables
+Create a `.env.local` in the project root:
+
+```
+# Published Google Sheet CSV export URL for the menu
+MENU_SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/.../pub?output=csv"
+
+# Webhook endpoint (e.g., Google Apps Script deployed as a Web App) to receive orders
+ORDERS_WEBHOOK_URL="https://script.google.com/macros/s/.../exec"
+
+# Optional: Published Google Sheet CSV for UI translations
+# Expected columns: key,en,de
+I18N_SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/.../pub?output=csv"
+```
+
+- For menu: In Google Sheets, File → Share → Publish to the web → Link → CSV, copy the generated URL.
+- For orders: Build a simple Apps Script that appends incoming JSON to a sheet and deploy it as a Web App (Execute as: Me; Who has access: Anyone). Use the deployed URL.
+
+### Data shape
+The menu CSV should have a header row with these columns:
+
+```
+id,name_en,name_de,description_en,description_de,ingredients_en,ingredients_de,max_quantity,price,image_urls
+```
+- ingredients and allergies can be comma-separated lists.
+
+### Local fallback
+If `MENU_SHEET_CSV_URL` is missing or fails, the app falls back to the built-in sample menu.
+
+## Develop
+
+```
+npm run dev
+```
+
+## Build
+
+```
+npm run build
+```
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
