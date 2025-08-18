@@ -26,6 +26,9 @@ export default function CartPage() {
   const [fulfillment, setFulfillment] = useState<'pickup' | 'delivery'>('pickup');
   const [notes, setNotes] = useState('');
   const [address, setAddress] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
 
   const total = useMemo(
     () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -48,6 +51,9 @@ export default function CartPage() {
         address: fulfillment === 'delivery' ? address : undefined,
         notes,
         total,
+  customerName: name || undefined,
+  customerPhone: phone || undefined,
+  customerEmail: email || undefined,
       };
       const res = await fetch('/api/orders', {
         method: 'POST',
@@ -106,6 +112,35 @@ export default function CartPage() {
                 ))}
               </ul>
             )}
+          </Section>
+
+          <Section title={t('cart.contact', lang === 'de' ? 'Ihre Daten' : 'Your details')} disabled={formDisabled}>
+            <div className="grid md:grid-cols-3 gap-3">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('cart.name', lang === 'de' ? 'Name' : 'Name')}
+                disabled={formDisabled}
+                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+              />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={t('cart.phone', lang === 'de' ? 'Telefonnummer' : 'Phone number')}
+                disabled={formDisabled}
+                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('cart.email', lang === 'de' ? 'E-Mail' : 'Email')}
+                disabled={formDisabled}
+                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+              />
+            </div>
           </Section>
 
           <Section title={t('cart.preferences', lang === 'de' ? 'Präferenzen' : 'Preferences')} disabled={formDisabled}>

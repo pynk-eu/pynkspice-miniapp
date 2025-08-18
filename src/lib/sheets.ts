@@ -164,6 +164,9 @@ export type OrderPayload = {
   notes?: string;
   total: number;
   timestamp?: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
 };
 
 // This posts order data to a Google Apps Script Web App (or any webhook) URL provided via env.
