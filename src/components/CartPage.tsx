@@ -2,12 +2,13 @@
 
 import SafeImage from '@/components/SafeImage';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import AddToCartButton from '@/components/AddToCartButton';
 import type { CartItem } from '@/types/index';
 import { useLang } from '@/contexts/LangContext';
 import { useMessages } from '@/hooks/useMessages';
+import { useTelegram } from '@/hooks/useTelegram';
 
 const Section = ({ title, children, disabled = false }: { title: string; children: React.ReactNode; disabled?: boolean }) => (
   <section
@@ -22,6 +23,7 @@ export default function CartPage() {
   const { cart, clearCart } = useCart();
   const { lang } = useLang();
   const { t } = useMessages();
+  const { tg, isTelegram } = useTelegram();
   const [fulfillment, setFulfillment] = useState<'pickup' | 'delivery'>('pickup');
   const [notes, setNotes] = useState('');
   const [street, setStreet] = useState('');
@@ -56,12 +58,12 @@ export default function CartPage() {
   const pincodeOk = isValidPincode(pincode);
   // Address fields are disabled for now; require minimal city+pincode when delivery
   const addressOk = fulfillment === 'pickup' ? true : city.trim().length > 0 && pincodeOk;
-  const canProceed = canCheckout && nameOk && phoneOk && addressOk;
+  const canProceed = canCheckout && nameOk && phoneOk && emailOk && addressOk;
 
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleCheckout = async () => {
+  const handleCheckout = useCallback(async () => {
     if (!canProceed) {
       setMessage(
         fulfillment === 'delivery'
@@ -110,7 +112,44 @@ export default function CartPage() {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [canProceed, fulfillment, lang, cart, street, houseNumber, pincode, city, name, phone, email, notes, total]);
+
+  // Telegram MainButton integration
+  useEffect(() => {
+    if (!tg) return;
+    try {
+      tg.ready();
+      if (tg.expand) tg.expand();
+
+      const btnText = submitting
+        ? t('cart.submitting', lang === 'de' ? 'Wird gesendet…' : 'Submitting…')
+        : t('cart.checkout', lang === 'de' ? 'Zur Kasse' : 'Proceed to Checkout');
+
+      // Set text and visibility
+      if (tg.MainButton.setText) tg.MainButton.setText(btnText);
+      if (canProceed && !submitting) {
+        tg.MainButton.show();
+      } else {
+        tg.MainButton.hide();
+      }
+
+      const onClick = async () => {
+        if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        await handleCheckout();
+      };
+
+      // Register click
+      tg.MainButton.offClick(onClick);
+      tg.MainButton.onClick(onClick);
+
+      return () => {
+        try {
+          tg.MainButton.offClick(onClick);
+          tg.MainButton.hide();
+        } catch {}
+      };
+    } catch {}
+  }, [tg, canProceed, submitting, lang, t, handleCheckout]);
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -306,13 +345,15 @@ export default function CartPage() {
                 <span>{t('cart.total', lang === 'de' ? 'Gesamt' : 'Total')}</span>
                 <span>€{total.toFixed(2)}</span>
               </div>
-              <button
-                disabled={!canProceed || !emailOk}
-                onClick={handleCheckout}
-                className="w-full mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-green-600 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold py-2.5 px-4 hover:bg-green-700 active:scale-[.98] transition disabled:cursor-not-allowed"
-              >
-                {submitting ? t('cart.submitting', lang === 'de' ? 'Wird gesendet…' : 'Submitting…') : t('cart.checkout', lang === 'de' ? 'Zur Kasse' : 'Proceed to Checkout')}
-              </button>
+              {!isTelegram && (
+                <button
+                  disabled={!canProceed || !emailOk}
+                  onClick={handleCheckout}
+                  className="w-full mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-green-600 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold py-2.5 px-4 hover:bg-green-700 active:scale-[.98] transition disabled:cursor-not-allowed"
+                >
+                  {submitting ? t('cart.submitting', lang === 'de' ? 'Wird gesendet…' : 'Submitting…') : t('cart.checkout', lang === 'de' ? 'Zur Kasse' : 'Proceed to Checkout')}
+                </button>
+              )}
               {message && (
                 <p className="text-sm mt-2 text-gray-700">{message}</p>
               )}
