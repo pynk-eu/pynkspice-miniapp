@@ -197,7 +197,7 @@ export default function CartPage() {
   }, [tg, canProceed, submitting, lang, t, handleCheckout]);
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto p-4 space-y-6 overflow-x-hidden">
       <div className="flex items-center justify-between">
   <h1 className="text-2xl font-bold text-gray-900">{t('cart.title', lang === 'de' ? 'Ihre Bestellung' : 'Your Order')}</h1>
         {cart.length > 0 && (
@@ -221,7 +221,7 @@ export default function CartPage() {
             ) : (
               <ul className="divide-y divide-gray-100">
         {cart.map((item: CartItem) => (
-                  <li key={item.id} className="py-4 flex items-center gap-4">
+                  <li key={item.id} className="py-4 flex flex-wrap items-center gap-4">
                     <div className="relative w-20 h-16 shrink-0 overflow-hidden rounded-md ring-1 ring-gray-100">
           <SafeImage src={item.images[0]} alt={item.name[lang]} className="absolute inset-0 w-full h-full object-cover" />
                     </div>
@@ -229,9 +229,11 @@ export default function CartPage() {
           <p className="font-medium text-gray-900 truncate">{item.name[lang]}</p>
           <p className="text-sm text-gray-600">€{item.price.toFixed(2)} each</p>
                     </div>
-                    <div className="w-44"><AddToCartButton item={item} /></div>
-                    <div className="w-20 text-right font-semibold text-gray-900">
-                      €{(item.price * item.quantity).toFixed(2)}
+                    <div className="flex items-center gap-3 w-full sm:w-auto sm:ml-auto">
+                      <div className="w-full sm:w-44"><AddToCartButton item={item} /></div>
+                      <div className="text-right font-semibold text-gray-900 min-w-[4.5rem]">
+                        €{(item.price * item.quantity).toFixed(2)}
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -314,7 +316,7 @@ export default function CartPage() {
               </div>
 
               {fulfillment === 'delivery' && (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div className="flex flex-col">
                     <input
                       type="text"
@@ -358,7 +360,7 @@ export default function CartPage() {
                       onChange={(e) => setCity(e.target.value)}
                       placeholder={lang === 'de' ? 'Stadt' : 'City'}
                       disabled
-                      className="w-full p-2.5 border rounded-lg bg-gray-50 text-gray-500"
+                      className="w-full p-2.5 border rounded-lg bg-gray-50 text-gray-500 min-w-0"
                     />
                   </div>
                 </div>
