@@ -20,6 +20,7 @@ function ensureHeader_(sheet) {
     'order_id',
     'timestamp',
     'server_timestamp',
+  'telegram_user_id',
     'customer_name',
     'customer_phone',
     'customer_email',
@@ -39,12 +40,19 @@ function ensureHeader_(sheet) {
     'status',
     'review'
   ];
-  var range = sheet.getRange(1, 1, 1, header.length);
-  var values = range.getValues();
-  var firstRowEmpty = values[0].every(function (cell) { return cell === '';
-  });
-  if (firstRowEmpty) {
-    range.setValues([header]);
+  var existing = sheet.getRange(1, 1, 1, Math.max(header.length, sheet.getLastColumn() || header.length)).getValues()[0];
+  var needsUpdate = false;
+  if (!existing || existing.length === 0) {
+    needsUpdate = true;
+  } else {
+    // If length differs or any label mismatches at the same position, update
+    if (existing.length !== header.length) needsUpdate = true;
+    for (var i = 0; i < header.length && !needsUpdate; i++) {
+      if (String(existing[i] || '') !== header[i]) needsUpdate = true;
+    }
+  }
+  if (needsUpdate) {
+    sheet.getRange(1, 1, 1, header.length).setValues([header]);
   }
 }
 
@@ -71,8 +79,35 @@ function generateOrderId_() {
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ ok: true }))
-    .setMimeType(ContentService.MimeType.JSON);
+  try {
+    var sheet = getSheet_();
+    var data = sheet.getDataRange().getValues();
+    if (!data || data.length < 2) {
+      return json_(200, []);
+    }
+
+    var header = data[0];
+    var rows = [];
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      if (!row || row.length === 0) continue;
+      var obj = {};
+      for (var c = 0; c < header.length; c++) {
+        obj[String(header[c] || '')] = row[c];
+      }
+      rows.push(obj);
+    }
+
+    var q = (e && e.parameter) || {};
+    var userId = q.telegramUserId || q.userId || '';
+    if (userId) {
+      rows = rows.filter(function (r) { return String(r['telegram_user_id'] || '') === String(userId); });
+    }
+
+    return json_(200, rows);
+  } catch (err) {
+    return json_(500, { ok: false, error: String(err && err.message || err) });
+  }
 }
 
 function doPost(e) {
@@ -98,14 +133,16 @@ function doPost(e) {
     // {
     //   items: [{ id, name, price, quantity }],
     //   delivery: { method: 'pickup'|'delivery', address?: { street, number, pincode, city } },
-    //   customer: { name, phone, email, language },
+  //   customer: { name, phone, email, language },
+  //   telegramUserId,
     //   notes, total, timestamp
     // }
 
     var items = data.items || [];
-    var customer = data.customer || {};
+  var customer = data.customer || {};
     var delivery = data.delivery || {};
     var address = delivery.address || {};
+  var telegramUserId = data.telegramUserId || '';
 
     var itemsCount = items.reduce(function (sum, it) { return sum + (Number(it.quantity) || 0); }, 0);
 
@@ -120,6 +157,7 @@ function doPost(e) {
         orderId,
         data.timestamp || new Date().toISOString(),
         serverTs,
+        telegramUserId,
         customer.name || '',
         customer.phone || '',
         customer.email || '',
@@ -147,6 +185,7 @@ function doPost(e) {
           orderId,
           data.timestamp || new Date().toISOString(),
           serverTs,
+          telegramUserId,
           customer.name || '',
           customer.phone || '',
           customer.email || '',
