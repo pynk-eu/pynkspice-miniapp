@@ -9,9 +9,9 @@ export default function TelegramGreeting() {
   const { t } = useMessages();
   const { lang } = useLang();
   const user = tg?.initDataUnsafe?.user;
-  if (!user) return null;
+  if (!user) return <p>{JSON.stringify(tg)}</p>;
   const handle = user.username ? `@${user.username}` : [user.first_name, user.last_name].filter(Boolean).join(' ');
-  if (!handle) return null;
+  if (!handle) return <p>{JSON.stringify(tg)}</p>;
   return (
     <div className="mb-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--tg-bg)' }}>
       <p className="text-sm" style={{ color: 'var(--tg-text)' }}>
