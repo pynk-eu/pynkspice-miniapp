@@ -25,7 +25,10 @@ export default function CartPage() {
   const { t } = useMessages();
   const [fulfillment, setFulfillment] = useState<'pickup' | 'delivery'>('pickup');
   const [notes, setNotes] = useState('');
-  const [address, setAddress] = useState('');
+  const [street, setStreet] = useState('');
+  const [houseNumber, setHouseNumber] = useState('');
+  const [pincode, setPincode] = useState('10115');
+  const [city, setCity] = useState('Berlin');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -37,23 +40,60 @@ export default function CartPage() {
 
   const canCheckout = cart.length > 0;
   const formDisabled = !canCheckout;
+  const nameOk = name.trim().length > 0;
+  const isValidPhone = (v: string) => {
+    const digits = v.replace(/\D/g, '');
+    // Accept E.164 or local with at least 7 digits
+    return /^\+?[0-9]{7,15}$/.test(v.replace(/\s|-/g, '')) || digits.length >= 7;
+  };
+  const phoneOk = isValidPhone(phone.trim());
+  const isValidEmail = (v: string) => {
+    if (!v) return true; // optional
+    // Simple email regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  };
+  const emailOk = isValidEmail(email.trim());
+  // Address fields are disabled for now; require minimal city+pincode when delivery
+  const addressOk = fulfillment === 'pickup' ? true : city.trim().length > 0 && pincode.trim().length > 0;
+  const canProceed = canCheckout && nameOk && phoneOk && addressOk;
 
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const handleCheckout = async () => {
+    if (!canProceed) {
+      setMessage(
+        fulfillment === 'delivery'
+          ? (lang === 'de' ? 'Bitte Name, Telefonnummer und Lieferadresse angeben.' : 'Please provide name, phone, and delivery address.')
+          : (lang === 'de' ? 'Bitte Name und Telefonnummer angeben.' : 'Please provide name and phone number.')
+      );
+      return;
+    }
     setSubmitting(true);
     setMessage(null);
     try {
       const payload = {
-        items: cart.map(({ id, name, price, quantity }) => ({ id, name, price, quantity })),
-        fulfillment,
-        address: fulfillment === 'delivery' ? address : undefined,
+        items: cart.map(({ id, name, price, quantity }) => ({ id, name: typeof name === 'string' ? name : name[lang], price, quantity })),
+        delivery: {
+          method: fulfillment,
+          address:
+            fulfillment === 'delivery'
+              ? {
+                  street: street || undefined,
+                  number: houseNumber || undefined,
+                  pincode: pincode || undefined,
+                  city: city || undefined,
+                }
+              : undefined,
+        },
+        customer: {
+          name: name || undefined,
+          phone: phone || undefined,
+          email: email || undefined,
+          language: lang,
+        },
         notes,
         total,
-  customerName: name || undefined,
-  customerPhone: phone || undefined,
-  customerEmail: email || undefined,
       };
       const res = await fetch('/api/orders', {
         method: 'POST',
@@ -116,30 +156,46 @@ export default function CartPage() {
 
           <Section title={t('cart.contact', lang === 'de' ? 'Ihre Daten' : 'Your details')} disabled={formDisabled}>
             <div className="grid md:grid-cols-3 gap-3">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('cart.name', lang === 'de' ? 'Name' : 'Name')}
-                disabled={formDisabled}
-                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-              />
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder={t('cart.phone', lang === 'de' ? 'Telefonnummer' : 'Phone number')}
-                disabled={formDisabled}
-                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-              />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('cart.email', lang === 'de' ? 'E-Mail' : 'Email')}
-                disabled={formDisabled}
-                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-              />
+              <div className="flex flex-col">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t('cart.name', lang === 'de' ? 'Name' : 'Name')}
+                  disabled={formDisabled}
+                  required
+                  className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                />
+              </div>
+              <div className="flex flex-col">
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={t('cart.phone', lang === 'de' ? 'Telefonnummer' : 'Phone number')}
+                  disabled={formDisabled}
+                  required
+                  aria-invalid={!!phone && !phoneOk}
+                  className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 ${phone && !phoneOk ? 'border-red-500 focus:ring-red-600' : 'focus:ring-pink-600'}`}
+                />
+                {phone && !phoneOk && (
+                  <p className="text-xs text-red-600 mt-1">{lang === 'de' ? 'Bitte eine gültige Telefonnummer eingeben.' : 'Please enter a valid phone number.'}</p>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('cart.email', lang === 'de' ? 'E-Mail' : 'Email')}
+                  disabled={formDisabled}
+                  aria-invalid={!!email && !emailOk}
+                  className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 ${email && !emailOk ? 'border-red-500 focus:ring-red-600' : 'focus:ring-pink-600'}`}
+                />
+                {email && !emailOk && (
+                  <p className="text-xs text-red-600 mt-1">{lang === 'de' ? 'Bitte eine gültige E-Mail-Adresse eingeben.' : 'Please enter a valid email address.'}</p>
+                )}
+              </div>
             </div>
           </Section>
 
@@ -173,14 +229,37 @@ export default function CartPage() {
               </div>
 
               {fulfillment === 'delivery' && (
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder={t('cart.address', lang === 'de' ? 'Lieferadresse' : 'Delivery address')}
-                  disabled={formDisabled}
-                  className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-                />
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <input
+                    type="text"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    placeholder={lang === 'de' ? 'Straße' : 'Street'}
+                    className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                  />
+                  <input
+                    type="text"
+                    value={houseNumber}
+                    onChange={(e) => setHouseNumber(e.target.value)}
+                    placeholder={lang === 'de' ? 'Nr.' : 'No.'}
+                    className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                  />
+                  <input
+                    type="text"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value)}
+                    placeholder={lang === 'de' ? 'PLZ' : 'Pincode'}
+                    className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                  />
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder={lang === 'de' ? 'Stadt' : 'City'}
+                    disabled
+                    className="w-full p-2.5 border rounded-lg bg-gray-50 text-gray-500"
+                  />
+                </div>
               )}
 
               <textarea
@@ -210,7 +289,7 @@ export default function CartPage() {
                 <span>€{total.toFixed(2)}</span>
               </div>
               <button
-                disabled={!canCheckout}
+                disabled={!canProceed || !emailOk}
                 onClick={handleCheckout}
                 className="w-full mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-green-600 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold py-2.5 px-4 hover:bg-green-700 active:scale-[.98] transition disabled:cursor-not-allowed"
               >

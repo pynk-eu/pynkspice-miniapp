@@ -159,14 +159,24 @@ export async function fetchMenuFromPublishedCSV(url: string): Promise<MenuItem[]
 
 export type OrderPayload = {
   items: Array<{ id: number; name: string; price: number; quantity: number }>;
-  fulfillment: 'pickup' | 'delivery';
-  address?: string;
+  delivery: {
+    method: 'pickup' | 'delivery';
+    address?: {
+      street?: string;
+      number?: string;
+      pincode?: string;
+      city?: string;
+    };
+  };
+  customer?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+    language?: 'en' | 'de';
+  };
   notes?: string;
   total: number;
   timestamp?: string;
-  customerName?: string;
-  customerPhone?: string;
-  customerEmail?: string;
 };
 
 // This posts order data to a Google Apps Script Web App (or any webhook) URL provided via env.
