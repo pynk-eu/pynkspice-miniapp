@@ -14,12 +14,19 @@ export async function POST(req: Request) {
       timestamp: new Date().toISOString(),
     });
 
+  let body: unknown = null;
+    try {
+      body = await res.json();
+    } catch {
+      // ignore non-JSON bodies
+    }
+
     if (!res.ok) {
-      const text = await res.text();
+      const text = body ? JSON.stringify(body) : await res.text();
       return NextResponse.json({ ok: false, error: `Webhook error: ${res.status} ${text}` }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, ...((body && typeof body === 'object') ? (body as Record<string, unknown>) : {}) });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ ok: false, error: message }, { status: 500 });

@@ -3,6 +3,7 @@
 import SafeImage from '@/components/SafeImage';
 import Link from 'next/link';
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import AddToCartButton from '@/components/AddToCartButton';
 import type { CartItem } from '@/types/index';
@@ -24,6 +25,7 @@ export default function CartPage() {
   const { lang } = useLang();
   const { t } = useMessages();
   const { tg, isTelegram } = useTelegram();
+  const router = useRouter();
   const [fulfillment, setFulfillment] = useState<'pickup' | 'delivery'>('pickup');
   const [notes, setNotes] = useState('');
   const [street, setStreet] = useState('');
@@ -104,15 +106,58 @@ export default function CartPage() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to place order');
-      setMessage('Order placed! We\'ll contact you shortly.');
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to place order');
+  setMessage('Order placed! We\'ll contact you shortly.');
+  // Clear cart and reset form state
+  clearCart();
+  setFulfillment('pickup');
+  setNotes('');
+  setStreet('');
+  setHouseNumber('');
+  setPincode('10115');
+  setCity('Berlin');
+  setName('');
+  setPhone('');
+  setEmail('');
+      if (tg) {
+        try {
+          tg.HapticFeedback?.notificationOccurred('success');
+          const payload = {
+            type: 'order',
+            ok: true,
+            orderId: (data && (data.orderId || data.id)) || undefined,
+            total,
+          };
+          tg.sendData?.(JSON.stringify(payload));
+          tg.close?.();
+        } catch {}
+      } else {
+        const orderId = (data && (data.orderId || data.id)) || '';
+        // Save a brief order summary for the success page
+        try {
+          const summary = {
+            orderId,
+            total,
+            deliveryMethod: fulfillment,
+            items: cart.map(({ id, name, price, quantity }) => ({
+              id,
+              name: typeof name === 'string' ? name : name[lang],
+              price,
+              quantity,
+            })),
+          };
+          sessionStorage.setItem('lastOrderSummary', JSON.stringify(summary));
+        } catch {}
+        const query = new URLSearchParams({ orderId, total: String(total) }).toString();
+        router.push(`/cart/success?${query}`);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Something went wrong';
       setMessage(msg);
     } finally {
       setSubmitting(false);
     }
-  }, [canProceed, fulfillment, lang, cart, street, houseNumber, pincode, city, name, phone, email, notes, total]);
+  }, [canProceed, fulfillment, lang, cart, street, houseNumber, pincode, city, name, phone, email, notes, total, tg, router, clearCart]);
 
   // Telegram MainButton integration
   useEffect(() => {
