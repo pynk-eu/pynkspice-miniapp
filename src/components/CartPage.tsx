@@ -53,8 +53,10 @@ export default function CartPage() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
   };
   const emailOk = isValidEmail(email.trim());
+  const isValidPincode = (v: string) => /^\d{5}$/.test(v.trim());
+  const pincodeOk = isValidPincode(pincode);
   // Address fields are disabled for now; require minimal city+pincode when delivery
-  const addressOk = fulfillment === 'pickup' ? true : city.trim().length > 0 && pincode.trim().length > 0;
+  const addressOk = fulfillment === 'pickup' ? true : city.trim().length > 0 && pincodeOk;
   const canProceed = canCheckout && nameOk && phoneOk && addressOk;
 
   const [submitting, setSubmitting] = useState(false);
@@ -230,35 +232,52 @@ export default function CartPage() {
 
               {fulfillment === 'delivery' && (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <input
-                    type="text"
-                    value={street}
-                    onChange={(e) => setStreet(e.target.value)}
-                    placeholder={lang === 'de' ? 'Straße' : 'Street'}
-                    className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-                  />
-                  <input
-                    type="text"
-                    value={houseNumber}
-                    onChange={(e) => setHouseNumber(e.target.value)}
-                    placeholder={lang === 'de' ? 'Nr.' : 'No.'}
-                    className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-                  />
-                  <input
-                    type="text"
-                    value={pincode}
-                    onChange={(e) => setPincode(e.target.value)}
-                    placeholder={lang === 'de' ? 'PLZ' : 'Pincode'}
-                    className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-                  />
-                  <input
-                    type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder={lang === 'de' ? 'Stadt' : 'City'}
-                    disabled
-                    className="w-full p-2.5 border rounded-lg bg-gray-50 text-gray-500"
-                  />
+                  <div className="flex flex-col">
+                    <input
+                      type="text"
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
+                      placeholder={lang === 'de' ? 'Straße' : 'Street'}
+                      className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <input
+                      type="text"
+                      value={houseNumber}
+                      onChange={(e) => setHouseNumber(e.target.value)}
+                      placeholder={lang === 'de' ? 'Nr.' : 'No.'}
+                      className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <input
+                      type="text"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value)}
+                      placeholder={lang === 'de' ? 'PLZ' : 'Pincode'}
+                      inputMode="numeric"
+                      pattern="\\d*"
+                      maxLength={5}
+                      aria-invalid={fulfillment === 'delivery' && !!pincode && !pincodeOk}
+                      className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 ${fulfillment === 'delivery' && pincode && !pincodeOk ? 'border-red-500 focus:ring-red-600' : 'focus:ring-pink-600'}`}
+                    />
+                    {fulfillment === 'delivery' && pincode && !pincodeOk && (
+                      <p className="text-xs text-red-600 mt-1">
+                        {lang === 'de' ? 'Bitte eine gültige 5-stellige PLZ eingeben.' : 'Please enter a valid 5-digit postal code.'}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder={lang === 'de' ? 'Stadt' : 'City'}
+                      disabled
+                      className="w-full p-2.5 border rounded-lg bg-gray-50 text-gray-500"
+                    />
+                  </div>
                 </div>
               )}
 
