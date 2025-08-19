@@ -29,11 +29,15 @@ function ensureHeader_(sheet) {
     'address_number',
     'address_pincode',
     'address_city',
-    'items_count',
-    'items_summary',
-    'items_json',
-    'notes',
-    'total'
+  'items_count',
+  'item_id',
+  'item_name',
+  'item_price',
+  'quantity',
+  'notes',
+    'total',
+    'status',
+    'review'
   ];
   var range = sheet.getRange(1, 1, 1, header.length);
   var values = range.getValues();
@@ -41,6 +45,28 @@ function ensureHeader_(sheet) {
   });
   if (firstRowEmpty) {
     range.setValues([header]);
+  }
+}
+
+function generateOrderId_() {
+  // Format: DDMMNN (e.g., 190801, 190802), NN is daily sequence starting at 01
+  var now = new Date();
+  var dd = ('0' + now.getDate()).slice(-2);
+  var mm = ('0' + (now.getMonth() + 1)).slice(-2);
+  var dayKey = dd + mm;
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var key = 'seq_' + dayKey;
+    var current = Number(props.getProperty(key) || '0');
+    var next = current + 1;
+    props.setProperty(key, String(next));
+    var seq = ('0' + next).slice(-2); // 01..99
+    return dayKey + seq;
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -82,39 +108,70 @@ function doPost(e) {
     var address = delivery.address || {};
 
     var itemsCount = items.reduce(function (sum, it) { return sum + (Number(it.quantity) || 0); }, 0);
-    var itemsSummary = items.map(function (it) {
-      var n = typeof it.name === 'string' ? it.name : (it.name && it.name['en']) || '';
-      var price = Number(it.price) || 0;
-      var qty = Number(it.quantity) || 0;
-      return qty + 'x ' + n + ' (' + price.toFixed(2) + ')';
-    }).join(', ');
-    var itemsJson = JSON.stringify(items);
 
-    var sheet = getSheet_();
-    var orderId = Utilities.getUuid();
+  var sheet = getSheet_();
+  var orderId = generateOrderId_();
     var serverTs = new Date();
 
-    var row = [
-      orderId,
-      data.timestamp || new Date().toISOString(),
-      serverTs,
-      customer.name || '',
-      customer.phone || '',
-      customer.email || '',
-      customer.language || '',
-      delivery.method || '',
-      address.street || '',
-      address.number || '',
-      address.pincode || '',
-      address.city || '',
-      itemsCount,
-      itemsSummary,
-      itemsJson,
-      data.notes || '',
-      Number(data.total) || 0
-    ];
+    // Build rows: one row per item, same orderId
+    var rows = [];
+    if (items.length === 0) {
+      rows.push([
+        orderId,
+        data.timestamp || new Date().toISOString(),
+        serverTs,
+        customer.name || '',
+        customer.phone || '',
+        customer.email || '',
+        customer.language || '',
+        delivery.method || '',
+        address.street || '',
+        address.number || '',
+        address.pincode || '',
+        address.city || '',
+        itemsCount,
+        '',
+        '',
+        0,
+        0,
+        data.notes || '',
+        Number(data.total) || 0,
+        'new',
+        ''
+      ]);
+    } else {
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i] || {};
+        var itemName = (typeof it.name === 'string') ? it.name : (it.name && it.name['en']) || '';
+        rows.push([
+          orderId,
+          data.timestamp || new Date().toISOString(),
+          serverTs,
+          customer.name || '',
+          customer.phone || '',
+          customer.email || '',
+          customer.language || '',
+          delivery.method || '',
+          address.street || '',
+          address.number || '',
+          address.pincode || '',
+          address.city || '',
+          itemsCount,
+          it.id || '',
+          itemName,
+          Number(it.price) || 0,
+          Number(it.quantity) || 0,
+          data.notes || '',
+          Number(data.total) || 0,
+          'new',
+          ''
+        ]);
+      }
+    }
 
-    sheet.appendRow(row);
+    // Append all rows
+    var lastRow = sheet.getLastRow();
+    sheet.getRange(lastRow + 1, 1, rows.length, rows[0].length).setValues(rows);
 
     return json_(200, { ok: true, orderId: orderId });
   } catch (err) {
