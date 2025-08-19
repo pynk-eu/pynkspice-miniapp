@@ -12,7 +12,6 @@ import { useMessages } from '@/hooks/useMessages';
 const Section = ({ title, children, disabled = false }: { title: string; children: React.ReactNode; disabled?: boolean }) => (
   <section
     className={`bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-4 md:p-6 ${disabled ? 'opacity-60' : ''}`}
-    aria-disabled={disabled}
   >
     <h2 className="text-lg font-semibold text-gray-900 mb-3">{title}</h2>
     <div className={disabled ? 'pointer-events-none select-none' : undefined}>{children}</div>
