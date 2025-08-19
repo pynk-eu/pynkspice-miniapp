@@ -6,6 +6,7 @@ import { LangProvider } from "@/contexts/LangContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TelegramThemeSync from "@/components/TelegramThemeSync";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <Script
+          src="https://telegram.org/js/telegram-web-app.js"
+          strategy="beforeInteractive"
+        />
         <LangProvider>
           <CartProvider>
             <TelegramThemeSync />
