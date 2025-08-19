@@ -5,12 +5,18 @@ import Image from 'next/image';
 import { useCart } from '@/contexts/CartContext';
 import { useLang } from '@/contexts/LangContext';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { useMessages } from '@/hooks/useMessages';
 
 const Header = () => {
   const { cart } = useCart();
   const { lang, setLang } = useLang();
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const isMenuActive = pathname === '/' || pathname.startsWith('/menu');
+  const isCartActive = pathname.startsWith('/cart');
+  const { t } = useMessages();
 
   // Close drawer on Escape
   useEffect(() => {
@@ -23,13 +29,23 @@ const Header = () => {
 
   return (
     <header className="w-full bg-white shadow-md px-4 py-3 flex justify-between items-center sticky top-0 z-50">
-      <Link href="/menu" className="flex items-center gap-2 min-w-0">
-        <Image src="/thePynkSpice_logo.jpg" alt="The PynkSpice Logo" width={50} height={50} className="rounded-full object-cover" />
-        <div className="truncate">
-          <h1 className="text-xl sm:text-2xl font-bold text-pink-500 truncate">The PynkSpice</h1>
-          <p className="text-gray-500 text-xs sm:text-sm truncate">Authentic Vegetarian Cuisine</p>
+      {isMenuActive ? (
+        <div className="flex items-center gap-2 min-w-0 cursor-default" aria-current="page">
+          <Image src="/thePynkSpice_logo.jpg" alt="The PynkSpice Logo" width={50} height={50} className="rounded-full object-cover" />
+          <div className="truncate">
+            <h1 className="text-xl sm:text-2xl font-bold text-pink-500 truncate">The PynkSpice</h1>
+            <p className="text-gray-500 text-xs sm:text-sm truncate">Authentic Vegetarian Cuisine</p>
+          </div>
         </div>
-      </Link>
+      ) : (
+        <Link href="/menu" className="flex items-center gap-2 min-w-0">
+          <Image src="/thePynkSpice_logo.jpg" alt="The PynkSpice Logo" width={50} height={50} className="rounded-full object-cover" />
+          <div className="truncate">
+            <h1 className="text-xl sm:text-2xl font-bold text-pink-500 truncate">The PynkSpice</h1>
+            <p className="text-gray-500 text-xs sm:text-sm truncate">Authentic Vegetarian Cuisine</p>
+          </div>
+        </Link>
+      )}
       {/* Desktop nav */}
       <nav className="hidden md:flex items-center gap-3">
         <div className="flex items-center gap-1 border rounded-full px-2 py-1 text-sm">
@@ -45,7 +61,16 @@ const Header = () => {
           >EN</button>
         </div>
         <Link href="/cart" className="relative">
-          <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+          <svg
+            className={`w-8 h-8 ${isCartActive ? 'text-gray-900' : 'text-gray-700'}`}
+            style={isCartActive ? undefined : { color: 'var(--tg-link)' }}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
           {itemCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
               {itemCount}
@@ -102,7 +127,7 @@ const Header = () => {
             aria-label="Menu"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="font-semibold text-gray-900">Menu</span>
+              <span className="font-semibold text-gray-900">{t('nav.menu', lang === 'de' ? 'Speisekarte' : 'Menu')}</span>
               <button
                 type="button"
                 aria-label="Close menu"
@@ -114,7 +139,7 @@ const Header = () => {
             </div>
 
             <div className="mb-4">
-              <div className="text-sm text-gray-600 mb-1">Language</div>
+              <div className="text-sm text-gray-600 mb-1">{t('nav.language', lang === 'de' ? 'Sprache' : 'Language')}</div>
               <div className="flex items-center gap-2">
                 <button
                   aria-pressed={lang === 'de'}
@@ -130,8 +155,24 @@ const Header = () => {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Link href="/menu" className="px-3 py-2 rounded-md hover:bg-gray-100" onClick={() => setOpen(false)}>Menu</Link>
-              <Link href="/cart" className="px-3 py-2 rounded-md hover:bg-gray-100" onClick={() => setOpen(false)}>Cart</Link>
+              <Link
+                href="/menu"
+                aria-current={isMenuActive ? 'page' : undefined}
+                className={`px-3 py-2 rounded-md hover:bg-gray-100 ${isMenuActive ? 'bg-gray-100 text-gray-900 font-semibold' : ''}`}
+                style={isMenuActive ? undefined : { color: 'var(--tg-link)' }}
+                onClick={() => setOpen(false)}
+              >
+                {t('nav.menu', lang === 'de' ? 'Speisekarte' : 'Menu')}
+              </Link>
+              <Link
+                href="/cart"
+                aria-current={isCartActive ? 'page' : undefined}
+                className={`px-3 py-2 rounded-md hover:bg-gray-100 ${isCartActive ? 'bg-gray-100 text-gray-900 font-semibold' : ''}`}
+                style={isCartActive ? undefined : { color: 'var(--tg-link)' }}
+                onClick={() => setOpen(false)}
+              >
+                {t('nav.cart', lang === 'de' ? 'Warenkorb' : 'Cart')}
+              </Link>
               <Link
                 href="/cart"
                 aria-disabled={itemCount === 0}
@@ -142,7 +183,7 @@ const Header = () => {
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                Checkout
+                {t('cart.checkout', lang === 'de' ? 'Zur Kasse' : 'Proceed to Checkout')}
               </Link>
             </div>
 

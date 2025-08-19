@@ -91,6 +91,7 @@ export default function CartPage() {
                 }
               : undefined,
         },
+        telegramUserId: tg?.initDataUnsafe?.user?.id,
         customer: {
           name: name || undefined,
           phone: phone || undefined,

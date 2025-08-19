@@ -168,6 +168,7 @@ export type OrderPayload = {
       city?: string;
     };
   };
+  telegramUserId?: string | number;
   customer?: {
     name?: string;
     phone?: string;
