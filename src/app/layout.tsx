@@ -5,6 +5,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { LangProvider } from "@/contexts/LangContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import TelegramThemeSync from "@/components/TelegramThemeSync";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <LangProvider>
           <CartProvider>
+            <TelegramThemeSync />
             <Header />
             <main>{children}</main>
             <Footer />
