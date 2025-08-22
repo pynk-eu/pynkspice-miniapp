@@ -7,6 +7,7 @@ import { useLang } from '@/contexts/LangContext';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useMessages } from '@/hooks/useMessages';
+import { useTelegram } from '@/hooks/useTelegram';
 
 const Header = () => {
   const { cart } = useCart();
@@ -16,7 +17,9 @@ const Header = () => {
   const pathname = usePathname();
   const isMenuActive = pathname === '/' || pathname.startsWith('/menu');
   const isCartActive = pathname.startsWith('/cart');
+  const isOrdersActive = pathname.startsWith('/orders');
   const { t } = useMessages();
+  const { tg } = useTelegram();
 
   // Close drawer on Escape
   useEffect(() => {
@@ -60,6 +63,16 @@ const Header = () => {
             className={`px-2 py-0.5 rounded-full ${lang === 'en' ? 'bg-gray-900 text-white' : 'text-gray-700'}`}
           >EN</button>
         </div>
+        {tg && (
+          <Link
+            href="/orders"
+            aria-current={isOrdersActive ? 'page' : undefined}
+            className={`text-sm font-medium ${isOrdersActive ? 'text-gray-900' : ''}`}
+            style={isOrdersActive ? undefined : { color: 'var(--tg-link)' }}
+          >
+            {t('nav.order_history', lang === 'de' ? 'Bestellverlauf' : 'Order history')}
+          </Link>
+        )}
         <Link href="/cart" className="relative">
           <svg
             className={`w-8 h-8 ${isCartActive ? 'text-gray-900' : 'text-gray-700'}`}
@@ -173,6 +186,16 @@ const Header = () => {
               >
                 {t('nav.cart', lang === 'de' ? 'Warenkorb' : 'Cart')}
               </Link>
+              {tg && (
+                <Link
+                  href="/orders"
+                  className="px-3 py-2 rounded-md hover:bg-gray-100"
+                  style={{ color: 'var(--tg-link)' }}
+                  onClick={() => setOpen(false)}
+                >
+                  {t('nav.order_history', lang === 'de' ? 'Bestellverlauf' : 'Order history')}
+                </Link>
+              )}
               <Link
                 href="/cart"
                 aria-disabled={itemCount === 0}
