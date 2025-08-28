@@ -46,7 +46,7 @@ export default function OrdersPage() {
         if (!userId) return;
         const res = await fetch(`/api/orders/by-telegram?userId=${encodeURIComponent(String(userId))}`, { cache: 'no-store' });
         const data = await res.json();
-        setRawData(JSON.stringify(data));
+        setRawData(JSON.stringify(res));
         if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to load orders');
         if (aborted) return;
         setRows(data.orders || []);
