@@ -46,20 +46,18 @@ export function useTelegram() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const setIfReady = () => {
+    if (tg) return; // already set
+    const assign = () => {
       if (window.Telegram?.WebApp) {
         setTg(window.Telegram.WebApp as TelegramWebApp);
       }
     };
-    // Try immediately
-    setIfReady();
-    // Fallback after DOM ready
+    assign();
     if (!tg) {
-      const onReady = () => setIfReady();
-      window.addEventListener('DOMContentLoaded', onReady, { once: true });
-      return () => window.removeEventListener('DOMContentLoaded', onReady);
+      window.addEventListener('DOMContentLoaded', assign, { once: true });
+      return () => window.removeEventListener('DOMContentLoaded', assign);
     }
-  }, []);
+  }, [tg]);
 
   return { tg, isTelegram: !!tg } as const;
 }

@@ -8,8 +8,8 @@ import { useEffect, useMemo, useState } from "react";
 export default function OrderSuccess() {
   const params = useSearchParams();
   const router = useRouter();
-  const orderId = params.get("orderId");
-  const total = params.get("total");
+  const orderId = params?.get("orderId") || null;
+  const total = params?.get("total") || null;
   const { lang } = useLang();
   const [seconds, setSeconds] = useState(10);
 

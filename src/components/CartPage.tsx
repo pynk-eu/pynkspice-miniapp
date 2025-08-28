@@ -24,14 +24,14 @@ export default function CartPage() {
   const { cart, clearCart } = useCart();
   const { lang } = useLang();
   const { t } = useMessages();
-  const { tg, isTelegram } = useTelegram();
+  const { tg } = useTelegram();
   const router = useRouter();
+  // Delivery hidden for now; keep state fixed at 'pickup'
   const [fulfillment, setFulfillment] = useState<'pickup' | 'delivery'>('pickup');
   const [notes, setNotes] = useState('');
-  const [street, setStreet] = useState('');
-  const [houseNumber, setHouseNumber] = useState('');
-  const [pincode, setPincode] = useState('10115');
-  const [city, setCity] = useState('Berlin');
+  // Delivery fields disabled
+  const [pincode, setPincode] = useState('10115'); // retained if re-enabled
+  // const [city, setCity] = useState('Berlin');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -56,10 +56,10 @@ export default function CartPage() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
   };
   const emailOk = isValidEmail(email.trim());
-  const isValidPincode = (v: string) => /^\d{5}$/.test(v.trim());
-  const pincodeOk = isValidPincode(pincode);
+  // const isValidPincode = (v: string) => /^\d{5}$/.test(v.trim());
+  // const pincodeOk = isValidPincode(pincode);
   // Address fields are disabled for now; require minimal city+pincode when delivery
-  const addressOk = fulfillment === 'pickup' ? true : city.trim().length > 0 && pincodeOk;
+  const addressOk = true; // delivery disabled
   const canProceed = canCheckout && nameOk && phoneOk && emailOk && addressOk;
 
   const [submitting, setSubmitting] = useState(false);
@@ -81,26 +81,13 @@ export default function CartPage() {
         items: cart.map(({ id, name, price, quantity }) => ({ id, name: typeof name === 'string' ? name : name[lang], price, quantity })),
         delivery: {
           method: fulfillment,
-          address:
-            fulfillment === 'delivery'
-              ? {
-                  street: street || undefined,
-                  number: houseNumber || undefined,
-                  pincode: pincode || undefined,
-                  city: city || undefined,
-                }
-              : undefined,
+          address: undefined, // delivery disabled currently
         },
         telegramUserId: tg?.initDataUnsafe?.user?.id,
-        customer: {
-          name: name || undefined,
-          phone: phone || undefined,
-          email: email || undefined,
-          language: lang,
-        },
+        // Omit redundant customer fields; user sheet holds profile
         notes,
         total,
-      };
+      } as const;
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,10 +100,8 @@ export default function CartPage() {
   clearCart();
   setFulfillment('pickup');
   setNotes('');
-  setStreet('');
-  setHouseNumber('');
   setPincode('10115');
-  setCity('Berlin');
+  // setCity('Berlin');
   setName('');
   setPhone('');
   setEmail('');
@@ -157,7 +142,27 @@ export default function CartPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [canProceed, fulfillment, lang, cart, street, houseNumber, pincode, city, name, phone, email, notes, total, tg, router, clearCart]);
+  }, [canProceed, fulfillment, lang, cart, notes, total, tg, router, clearCart]);
+
+  // Prefill user profile fields (name, phone, email) if inside Telegram and we have saved profile
+  useEffect(() => {
+    let aborted = false;
+    async function loadProfile() {
+      const id = tg?.initDataUnsafe?.user?.id;
+      if (!id) return;
+      try {
+        const res = await fetch(`/api/user/by-telegram?userId=${encodeURIComponent(String(id))}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.ok || !data.user || aborted) return;
+        if (data.user.customerName && !name) setName(data.user.customerName);
+        if (data.user.phone && !phone) setPhone(data.user.phone);
+        if (data.user.email && !email) setEmail(data.user.email);
+      } catch {}
+    }
+    loadProfile();
+    return () => { aborted = true; };
+  }, [tg, name, phone, email]);
 
   // Telegram MainButton: keep hidden so we use our own button even inside Telegram
   useEffect(() => {
@@ -261,84 +266,7 @@ export default function CartPage() {
 
           <Section title={t('cart.preferences', lang === 'de' ? 'Präferenzen' : 'Preferences')} disabled={formDisabled}>
             <div className="space-y-4">
-              <div className="flex items-center gap-6">
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="fulfillment"
-                    value="pickup"
-                    checked={fulfillment === 'pickup'}
-                    onChange={() => setFulfillment('pickup')}
-                    disabled={formDisabled}
-                    className="text-pink-600 focus:ring-pink-600"
-                  />
-                  <span>{t('cart.pickup', lang === 'de' ? 'Abholung' : 'Pickup')}</span>
-                </label>
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="fulfillment"
-                    value="delivery"
-                    checked={fulfillment === 'delivery'}
-                    onChange={() => setFulfillment('delivery')}
-                    disabled={formDisabled}
-                    className="text-pink-600 focus:ring-pink-600"
-                  />
-                  <span>{t('cart.delivery', lang === 'de' ? 'Lieferung' : 'Delivery')}</span>
-                </label>
-              </div>
-
-              {fulfillment === 'delivery' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="flex flex-col">
-                    <input
-                      type="text"
-                      value={street}
-                      onChange={(e) => setStreet(e.target.value)}
-                      placeholder={lang === 'de' ? 'Straße' : 'Street'}
-                      className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <input
-                      type="text"
-                      value={houseNumber}
-                      onChange={(e) => setHouseNumber(e.target.value)}
-                      placeholder={lang === 'de' ? 'Nr.' : 'No.'}
-                      className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <input
-                      type="text"
-                      value={pincode}
-                      onChange={(e) => setPincode(e.target.value)}
-                      placeholder={lang === 'de' ? 'PLZ' : 'Pincode'}
-                      inputMode="numeric"
-                      pattern="\\d*"
-                      maxLength={5}
-                      aria-invalid={fulfillment === 'delivery' && !!pincode && !pincodeOk}
-                      className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 ${fulfillment === 'delivery' && pincode && !pincodeOk ? 'border-red-500 focus:ring-red-600' : 'focus:ring-pink-600'}`}
-                    />
-                    {fulfillment === 'delivery' && pincode && !pincodeOk && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {lang === 'de' ? 'Bitte eine gültige 5-stellige PLZ eingeben.' : 'Please enter a valid 5-digit postal code.'}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder={lang === 'de' ? 'Stadt' : 'City'}
-                      disabled
-                      className="w-full p-2.5 border rounded-lg bg-gray-50 text-gray-500 min-w-0"
-                    />
-                  </div>
-                </div>
-              )}
-
+              <div className="text-sm text-gray-600">{t('cart.pickupOnly', lang === 'de' ? 'Derzeit nur Abholung verfügbar.' : 'Pickup only at the moment.')}</div>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}

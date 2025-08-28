@@ -35,11 +35,15 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, error: 'Unsupported export format. Provide JSON endpoint via ORDERS_EXPORT_URL.', raw: text }, { status: 500 });
     }
 
-    // If the endpoint returns an object with rows or orders, unwrap; else if array, use directly
-    const rowsUnknown = Array.isArray(data)
-      ? data
-      : (typeof data === 'object' && data !== null ? ((data as any).rows || (data as any).orders) : undefined);
-    if (!Array.isArray(rowsUnknown)) {
+    // If the endpoint returns an object with rows or orders, unwrap; else if array, use directly (avoid explicit any)
+    let rowsContainer: unknown;
+    if (Array.isArray(data)) {
+      rowsContainer = data;
+    } else if (typeof data === 'object' && data !== null) {
+      const obj = data as Record<string, unknown>;
+      rowsContainer = (obj['rows'] ?? obj['orders']);
+    }
+    if (!Array.isArray(rowsContainer)) {
       return NextResponse.json({ ok: false, error: 'Malformed export response' }, { status: 500 });
     }
 
@@ -54,7 +58,7 @@ export async function GET(req: Request) {
     const get = (obj: Record<string, unknown>, key: string) => obj[key];
 
     // Normalize to a common shape for UI consumption
-    const orders = rowsUnknown.map((row) => {
+  const orders = (rowsContainer as unknown[]).map((row) => {
       const r = (typeof row === 'object' && row !== null ? (row as Record<string, unknown>) : {});
       return {
         orderId: toStr(get(r, 'order_id') ?? get(r, 'orderId')),

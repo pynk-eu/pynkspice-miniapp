@@ -6,6 +6,7 @@ import { LangProvider } from "@/contexts/LangContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TelegramThemeSync from "@/components/TelegramThemeSync";
+import TelegramAutoRegister from "@/components/TelegramAutoRegister";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -30,6 +31,7 @@ export default function RootLayout({
         <LangProvider>
           <CartProvider>
             <TelegramThemeSync />
+            <TelegramAutoRegister />
             <Header />
             <main>{children}</main>
             <Footer />

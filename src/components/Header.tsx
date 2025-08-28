@@ -14,7 +14,7 @@ const Header = () => {
   const { lang, setLang } = useLang();
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
+  const pathname = usePathname() || '/';
   const isMenuActive = pathname === '/' || pathname.startsWith('/menu');
   const isCartActive = pathname.startsWith('/cart');
   const isOrdersActive = pathname.startsWith('/orders');
