@@ -15,6 +15,7 @@ export default function OrdersPage() {
   const { tg } = useTelegram();
   const [rows, setRows] = useState<OrderRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [rawData, setRawData] = useState<any[]>([]);
   const userId = tg?.initDataUnsafe?.user?.id;
 
   const groupByOrder = useMemo(() => {
@@ -45,6 +46,7 @@ export default function OrdersPage() {
         if (!userId) return;
         const res = await fetch(`/api/orders/by-telegram?userId=${encodeURIComponent(String(userId))}`, { cache: 'no-store' });
         const data = await res.json();
+        setRawData(data);
         if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to load orders');
         if (aborted) return;
         setRows(data.orders || []);
@@ -63,6 +65,9 @@ export default function OrdersPage() {
       {!userId && (
         <p className="text-gray-600">Open this page inside Telegram to see your order history.</p>
       )}
+      {
+        JSON.stringify(rawData)
+      }
       {error && <p className="text-red-600">{error}</p>}
       {userId && !error && groupByOrder.length === 0 && (
         <p className="text-gray-600">No orders yet.</p>
