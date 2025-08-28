@@ -130,7 +130,6 @@ export default function CartPage() {
             total,
           };
           tg.sendData?.(JSON.stringify(payload));
-          tg.close?.();
         } catch {}
       } else {
         const orderId = (data && (data.orderId || data.id)) || '';

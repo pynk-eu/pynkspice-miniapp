@@ -35,10 +35,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, error: 'Unsupported export format. Provide JSON endpoint via ORDERS_EXPORT_URL.', raw: text }, { status: 500 });
     }
 
-    // If the endpoint returns an object with rows, unwrap; else if array, use directly
+    // If the endpoint returns an object with rows or orders, unwrap; else if array, use directly
     const rowsUnknown = Array.isArray(data)
       ? data
-      : (typeof data === 'object' && data !== null ? (data as { rows?: unknown }).rows : undefined);
+      : (typeof data === 'object' && data !== null ? ((data as any).rows || (data as any).orders) : undefined);
     if (!Array.isArray(rowsUnknown)) {
       return NextResponse.json({ ok: false, error: 'Malformed export response' }, { status: 500 });
     }
