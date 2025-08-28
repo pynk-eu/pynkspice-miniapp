@@ -84,7 +84,15 @@ export default function CartPage() {
           address: undefined, // delivery disabled currently
         },
         telegramUserId: tg?.initDataUnsafe?.user?.id,
-        // Omit redundant customer fields; user sheet holds profile
+        telegramUsername: tg?.initDataUnsafe?.user?.username,
+        telegramFirstName: tg?.initDataUnsafe?.user?.first_name,
+        telegramLastName: tg?.initDataUnsafe?.user?.last_name,
+        customer: {
+          name: name || undefined,
+          phone: phone || undefined,
+          email: email || undefined,
+          language: lang,
+        },
         notes,
         total,
       } as const;
@@ -142,7 +150,7 @@ export default function CartPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [canProceed, fulfillment, lang, cart, notes, total, tg, router, clearCart]);
+  }, [canProceed, fulfillment, lang, cart, name, phone, email, notes, total, tg, router, clearCart]);
 
   // Prefill user profile fields (name, phone, email) if inside Telegram and we have saved profile
   useEffect(() => {

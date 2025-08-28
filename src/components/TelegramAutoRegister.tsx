@@ -1,9 +1,11 @@
 "use client";
 import { useEffect } from 'react';
 import { useTelegram } from '@/hooks/useTelegram';
+import { useLang } from '@/contexts/LangContext';
 
 export default function TelegramAutoRegister() {
   const { tg } = useTelegram();
+  const { lang } = useLang();
 
   useEffect(() => {
     if (!tg?.initDataUnsafe?.user?.id) return;
@@ -19,11 +21,12 @@ export default function TelegramAutoRegister() {
         telegramUsername: u.username,
         telegramFirstName: u.first_name,
         telegramLastName: u.last_name,
+        customer: { language: lang },
       }),
       signal: controller.signal,
     }).catch(() => {});
     return () => controller.abort();
-  }, [tg]);
+  }, [tg, lang]);
 
   return null;
 }
