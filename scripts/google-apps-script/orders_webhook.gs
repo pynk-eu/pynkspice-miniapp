@@ -5,57 +5,53 @@
 // 4) Deploy > New deployment > Web app: execute as Me, Who has access: Anyone
 // 5) Put the Web app URL into your app as ORDERS_WEBHOOK_URL
 
-var SHEET_ID = 'PUT_YOUR_SHEET_ID_HERE';
-var SHEET_NAME = 'Orders';
-var USERS_SHEET_NAME = 'Users';
+const SHEET_ID = '1o0sW7opX9BRf9PY9rYqPPhIbu3ABsL6LTIabV4kGNJg';
+const SHEET_NAME = 'Orders';
+const USERS_SHEET_NAME = 'Users';
 
 function getSheet_() {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
   ensureHeader_(sheet);
   return sheet;
 }
 
 function getUsersSheet_() {
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var sheet = ss.getSheetByName(USERS_SHEET_NAME) || ss.insertSheet(USERS_SHEET_NAME);
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(USERS_SHEET_NAME) || ss.insertSheet(USERS_SHEET_NAME);
   ensureUsersHeader_(sheet);
   return sheet;
 }
 
 function ensureHeader_(sheet) {
-  var header = [
+  const header = [
     'order_id',
     'timestamp',
     'server_timestamp',
-  'telegram_user_id',
-    'customer_name',
-    'customer_phone',
-    'customer_email',
-    'language',
+    'user_id',
     'delivery_method',
     'address_street',
     'address_number',
     'address_pincode',
     'address_city',
-  'items_count',
-  'item_id',
-  'item_name',
-  'item_price',
-  'quantity',
-  'notes',
+    'items_count',
+    'item_id',
+    'item_name',
+    'item_price',
+    'quantity',
+    'notes',
     'total',
     'status',
     'review'
   ];
-  var existing = sheet.getRange(1, 1, 1, Math.max(header.length, sheet.getLastColumn() || header.length)).getValues()[0];
-  var needsUpdate = false;
+  const existing = sheet.getRange(1, 1, 1, Math.max(header.length, sheet.getLastColumn() || header.length)).getValues()[0];
+  let needsUpdate = false;
   if (!existing || existing.length === 0) {
     needsUpdate = true;
   } else {
     // If length differs or any label mismatches at the same position, update
     if (existing.length !== header.length) needsUpdate = true;
-    for (var i = 0; i < header.length && !needsUpdate; i++) {
+    for (let i = 0; i < header.length && !needsUpdate; i++) {
       if (String(existing[i] || '') !== header[i]) needsUpdate = true;
     }
   }
@@ -65,7 +61,7 @@ function ensureHeader_(sheet) {
 }
 
 function ensureUsersHeader_(sheet) {
-  var header = [
+  const header = [
     'telegram_user_id',
     'telegram_username',
     'telegram_first_name',
@@ -80,30 +76,30 @@ function ensureUsersHeader_(sheet) {
     'created_at',
     'updated_at'
   ];
-  var existing = sheet.getRange(1, 1, 1, Math.max(header.length, sheet.getLastColumn() || header.length)).getValues()[0];
-  var needsUpdate = false;
+  const existing = sheet.getRange(1, 1, 1, Math.max(header.length, sheet.getLastColumn() || header.length)).getValues()[0];
+  let needsUpdate = false;
   if (!existing || existing.length === 0) needsUpdate = true; else if (existing.length !== header.length) needsUpdate = true; else {
-    for (var i = 0; i < header.length; i++) if (String(existing[i] || '') !== header[i]) { needsUpdate = true; break; }
+    for (let i = 0; i < header.length; i++) if (String(existing[i] || '') !== header[i]) { needsUpdate = true; break; }
   }
   if (needsUpdate) sheet.getRange(1, 1, 1, header.length).setValues([header]);
 }
 
 function upsertUserProfile_(profile) {
   if (!profile || !profile.telegram_user_id) return;
-  var sheet = getUsersSheet_();
-  var data = sheet.getDataRange().getValues();
-  var header = data[0] || [];
-  var idCol = header.indexOf('telegram_user_id');
-  var countCol = header.indexOf('orders_count');
-  var lastOrderIdCol = header.indexOf('last_order_id');
-  var lastOrderTsCol = header.indexOf('last_order_timestamp');
-  var createdAtCol = header.indexOf('created_at');
-  var updatedAtCol = header.indexOf('updated_at');
-  var rowIndex = -1;
-  for (var r = 1; r < data.length; r++) {
+  const sheet = getUsersSheet_();
+  const data = sheet.getDataRange().getValues();
+  const header = data[0] || [];
+  const idCol = header.indexOf('telegram_user_id');
+  const countCol = header.indexOf('orders_count');
+  const lastOrderIdCol = header.indexOf('last_order_id');
+  const lastOrderTsCol = header.indexOf('last_order_timestamp');
+  const createdAtCol = header.indexOf('created_at');
+  const updatedAtCol = header.indexOf('updated_at');
+  let rowIndex = -1;
+  for (let r = 1; r < data.length; r++) {
     if (String(data[r][idCol]) === String(profile.telegram_user_id)) { rowIndex = r; break; }
   }
-  var now = new Date();
+  const now = new Date();
   if (rowIndex === -1) {
     sheet.appendRow([
       profile.telegram_user_id,
@@ -121,8 +117,8 @@ function upsertUserProfile_(profile) {
       now
     ]);
   } else {
-    var rng = sheet.getRange(rowIndex + 1, 1, 1, header.length);
-    var values = rng.getValues()[0];
+    const rng = sheet.getRange(rowIndex + 1, 1, 1, header.length);
+    const values = rng.getValues()[0];
     if (header.indexOf('telegram_username') !== -1 && profile.telegram_username) values[header.indexOf('telegram_username')] = profile.telegram_username;
     if (header.indexOf('telegram_first_name') !== -1 && profile.telegram_first_name) values[header.indexOf('telegram_first_name')] = profile.telegram_first_name;
     if (header.indexOf('telegram_last_name') !== -1 && profile.telegram_last_name) values[header.indexOf('telegram_last_name')] = profile.telegram_last_name;
@@ -140,20 +136,20 @@ function upsertUserProfile_(profile) {
 
 function generateOrderId_() {
   // Format: DDMMNN (e.g., 190801, 190802), NN is daily sequence starting at 01
-  var now = new Date();
-  var dd = ('0' + now.getDate()).slice(-2);
-  var mm = ('0' + (now.getMonth() + 1)).slice(-2);
-  var dayKey = dd + mm;
+  const now = new Date();
+  const dd = ('0' + now.getDate()).slice(-2);
+  const mm = ('0' + (now.getMonth() + 1)).slice(-2);
+  const dayKey = dd + mm;
 
-  var lock = LockService.getScriptLock();
+  const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
-    var props = PropertiesService.getScriptProperties();
-    var key = 'seq_' + dayKey;
-    var current = Number(props.getProperty(key) || '0');
-    var next = current + 1;
+    const props = PropertiesService.getScriptProperties();
+    const key = 'seq_' + dayKey;
+    const current = Number(props.getProperty(key) || '0');
+    const next = current + 1;
     props.setProperty(key, String(next));
-    var seq = ('0' + next).slice(-2); // 01..99
+    const seq = ('0' + next).slice(-2); // 01..99
     return dayKey + seq;
   } finally {
     lock.releaseLock();
@@ -162,40 +158,40 @@ function generateOrderId_() {
 
 function doGet(e) {
   try {
-    var q = (e && e.parameter) || {};
+    const q = (e && e.parameter) || {};
     if (q.userProfile == '1' || q.userProfile === 'true') {
-      var uSheet = getUsersSheet_();
-      var uData = uSheet.getDataRange().getValues();
+      const uSheet = getUsersSheet_();
+      const uData = uSheet.getDataRange().getValues();
       if (!uData || uData.length < 2) return json_(200, { ok: true, user: null });
-      var uHeader = uData[0];
-      var uid = q.telegramUserId || q.userId || '';
-      for (var r = 1; r < uData.length; r++) {
+      const uHeader = uData[0];
+      const uid = q.telegramUserId || q.userId || '';
+      for (let r = 1; r < uData.length; r++) {
         if (String(uData[r][0]) === String(uid)) {
-          var obj = {};
-          for (var c = 0; c < uHeader.length; c++) obj[String(uHeader[c] || '')] = uData[r][c];
+          const obj = {};
+          for (let c = 0; c < uHeader.length; c++) obj[String(uHeader[c] || '')] = uData[r][c];
           return json_(200, { ok: true, user: obj });
         }
       }
       return json_(200, { ok: true, user: null });
     }
 
-    var sheet = getSheet_();
-    var data = sheet.getDataRange().getValues();
+    const sheet = getSheet_();
+    const data = sheet.getDataRange().getValues();
     if (!data || data.length < 2) {
       return json_(200, []);
     }
-    var header = data[0];
-    var rows = [];
-    for (var i = 1; i < data.length; i++) {
+    const header = data[0];
+    const rows = [];
+    for (let i = 1; i < data.length; i++) {
       var row = data[i];
       if (!row || row.length === 0) continue;
       var obj = {};
-      for (var c = 0; c < header.length; c++) {
+      for (let c = 0; c < header.length; c++) {
         obj[String(header[c] || '')] = row[c];
       }
       rows.push(obj);
     }
-    var userId = q.telegramUserId || q.userId || '';
+    const userId = q.telegramUserId || q.userId || '';
     if (userId) rows = rows.filter(function (r) { return String(r['telegram_user_id'] || '') === String(userId); });
     return json_(200, rows);
   } catch (err) {
@@ -209,14 +205,14 @@ function doPost(e) {
       return json_(400, { ok: false, error: 'No body' });
     }
 
-    var contentType = (e.postData.type || '').toLowerCase();
-    var body = e.postData.contents;
-    var data;
+    const contentType = (e.postData.type || '').toLowerCase();
+    const body = e.postData.contents;
+    let data;
 
     if (contentType.indexOf('application/json') !== -1) {
       data = JSON.parse(body);
     } else if (contentType.indexOf('application/x-www-form-urlencoded') !== -1) {
-      var params = e.parameter || {};
+      const params = e.parameter || {};
       data = JSON.parse(params.payload || body);
     } else {
       data = JSON.parse(body); // best-effort
@@ -247,33 +243,33 @@ function doPost(e) {
       return json_(200, { ok: true, registered: true });
     }
 
-    var items = data.items || [];
-    var customer = data.customer || {};
-    var delivery = data.delivery || {};
-    var address = delivery.address || {};
-    var telegramUserId = data.telegramUserId || '';
-    var telegramUsername = data.telegramUsername || '';
-    var telegramFirstName = data.telegramFirstName || '';
-    var telegramLastName = data.telegramLastName || '';
+    const items = data.items || [];
+    const customer = data.customer || {};
+    const delivery = data.delivery || {};
+    const address = delivery.address || {};
+    const telegramUserId = data.telegramUserId || '';
+    const telegramUsername = data.telegramUsername || '';
+    const telegramFirstName = data.telegramFirstName || '';
+    const telegramLastName = data.telegramLastName || '';
 
-    var itemsCount = items.reduce(function (sum, it) { return sum + (Number(it.quantity) || 0); }, 0);
+    const itemsCount = items.reduce(function (sum, it) { return sum + (Number(it.quantity) || 0); }, 0);
 
-  var sheet = getSheet_();
-  var orderId = generateOrderId_();
-    var serverTs = new Date();
+    const sheet = getSheet_();
+    const orderId = generateOrderId_();
+    const serverTs = new Date();
 
     // Build rows: one row per item, same orderId
-    var rows = [];
+    const rows = [];
     if (items.length === 0) {
       rows.push([
         orderId,
         data.timestamp || new Date().toISOString(),
         serverTs,
         telegramUserId,
-  '', // customer_name now stored in Users sheet
-  '', // customer_phone now stored in Users sheet
-  '', // customer_email now stored in Users sheet
-  '', // language now stored in Users sheet
+        // customer_name now stored in Users sheet
+        // customer_phone now stored in Users sheet
+        // customer_email now stored in Users sheet
+        // language now stored in Users sheet
         delivery.method || '',
         address.street || '',
         address.number || '',
@@ -290,18 +286,14 @@ function doPost(e) {
         ''
       ]);
     } else {
-      for (var i = 0; i < items.length; i++) {
-        var it = items[i] || {};
-        var itemName = (typeof it.name === 'string') ? it.name : (it.name && it.name['en']) || '';
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i] || {};
+        const itemName = (typeof it.name === 'string') ? it.name : (it.name && it.name['en']) || '';
         rows.push([
           orderId,
           data.timestamp || new Date().toISOString(),
           serverTs,
           telegramUserId,
-          '',
-          '',
-          '',
-          '',
           delivery.method || '',
           address.street || '',
           address.number || '',
@@ -321,7 +313,7 @@ function doPost(e) {
     }
 
     // Append all rows
-    var lastRow = sheet.getLastRow();
+    const lastRow = sheet.getLastRow();
     sheet.getRange(lastRow + 1, 1, rows.length, rows[0].length).setValues(rows);
 
     // Upsert user profile after writing order rows
