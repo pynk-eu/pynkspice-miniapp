@@ -113,37 +113,30 @@ export default function CartPage() {
   setName('');
   setPhone('');
   setEmail('');
+      const orderId = (data && (data.orderId || data.id)) || '';
+      // Save a brief order summary for the success page (even in Telegram; keeps UX consistent)
+      try {
+        const summary = {
+          orderId,
+          total,
+          deliveryMethod: fulfillment,
+          items: cart.map(({ id, name, price, quantity }) => ({
+            id,
+            name: typeof name === 'string' ? name : name[lang],
+            price,
+            quantity,
+          })),
+        };
+        sessionStorage.setItem('lastOrderSummary', JSON.stringify(summary));
+      } catch {}
       if (tg) {
         try {
           tg.HapticFeedback?.notificationOccurred('success');
-          const payload = {
-            type: 'order',
-            ok: true,
-            orderId: (data && (data.orderId || data.id)) || undefined,
-            total,
-          };
-          tg.sendData?.(JSON.stringify(payload));
+          tg.sendData?.(JSON.stringify({ type: 'order', ok: true, orderId, total }));
         } catch {}
-      } else {
-        const orderId = (data && (data.orderId || data.id)) || '';
-        // Save a brief order summary for the success page
-        try {
-          const summary = {
-            orderId,
-            total,
-            deliveryMethod: fulfillment,
-            items: cart.map(({ id, name, price, quantity }) => ({
-              id,
-              name: typeof name === 'string' ? name : name[lang],
-              price,
-              quantity,
-            })),
-          };
-          sessionStorage.setItem('lastOrderSummary', JSON.stringify(summary));
-        } catch {}
-        const query = new URLSearchParams({ orderId, total: String(total) }).toString();
-        router.push(`/cart/success?${query}`);
       }
+      const query = new URLSearchParams({ orderId, total: String(total) }).toString();
+      router.push(`/cart/success?${query}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Something went wrong';
       setMessage(msg);
