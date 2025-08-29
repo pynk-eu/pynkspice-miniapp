@@ -28,6 +28,7 @@ export async function POST(req: Request) {
     }
 
     // Fire and forget Telegram admin notification (don't block response)
+    let telegramResult: unknown = null;
     try {
       const orderId = (() => {
         if (body && typeof body === 'object' && 'orderId' in body) {
@@ -41,11 +42,12 @@ export async function POST(req: Request) {
         items: payload.items.map(i => ({ name: i.name, quantity: i.quantity })),
         total: payload.total,
       });
-      // Avoid awaiting; but ensure promise rejection is handled
-      sendTelegramAdminMessage(text).catch(() => {});
-    } catch {}
+      telegramResult = await sendTelegramAdminMessage(text);
+    } catch (e) {
+      telegramResult = { ok: false, error: e instanceof Error ? e.message : 'unknown error' };
+    }
 
-    return NextResponse.json({ ok: true, ...((body && typeof body === 'object') ? (body as Record<string, unknown>) : {}) });
+    return NextResponse.json({ ok: true, ...((body && typeof body === 'object') ? (body as Record<string, unknown>) : {}), telegram: telegramResult });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ ok: false, error: message }, { status: 500 });

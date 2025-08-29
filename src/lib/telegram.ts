@@ -7,7 +7,12 @@
 export async function sendTelegramAdminMessage(text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
-  if (!token || !chatId) return { skipped: true } as const;
+  if (!token || !chatId) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[telegram] Missing TELEGRAM_BOT_TOKEN or TELEGRAM_ADMIN_CHAT_ID env; skipping notification');
+    }
+    return { skipped: true } as const;
+  }
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   try {
     const res = await fetch(url, {
@@ -15,12 +20,22 @@ export async function sendTelegramAdminMessage(text: string) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: chatId, text }),
     });
+    const raw = await res.text();
     if (!res.ok) {
-      return { ok: false, status: res.status } as const;
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('[telegram] sendMessage failed', res.status, raw);
+      }
+      return { ok: false, status: res.status, body: raw } as const;
+    }
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[telegram] notification sent');
     }
     return { ok: true } as const;
-  } catch {
-    return { ok: false } as const;
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[telegram] sendMessage error', err);
+    }
+    return { ok: false, error: (err instanceof Error ? err.message : String(err)) } as const;
   }
 }
 
