@@ -16,6 +16,10 @@ MENU_SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/.../pub?output=csv"
 # Webhook endpoint (e.g., Google Apps Script deployed as a Web App) to receive orders
 ORDERS_WEBHOOK_URL="https://script.google.com/macros/s/.../exec"
 
+# Telegram bot (optional, for admin notifications on new orders)
+TELEGRAM_BOT_TOKEN="123456:ABCDEF..." # obtain from @BotFather
+TELEGRAM_ADMIN_CHAT_ID="123456789"    # your numeric user or group chat id
+
 # Optional: Published Google Sheet CSV for UI translations
 # Expected columns: key,en,de
 I18N_SHEET_CSV_URL="https://docs.google.com/spreadsheets/d/.../pub?output=csv"
