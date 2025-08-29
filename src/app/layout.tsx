@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/contexts/CartContext";
 import { LangProvider } from "@/contexts/LangContext";
+import { UserProvider } from "@/contexts/UserContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TelegramThemeSync from "@/components/TelegramThemeSync";
@@ -29,13 +30,15 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
         <LangProvider>
-          <CartProvider>
-            <TelegramThemeSync />
-            <TelegramAutoRegister />
-            <Header />
-            <main>{children}</main>
-            <Footer />
-          </CartProvider>
+          <UserProvider>
+            <CartProvider>
+              <TelegramThemeSync />
+              <TelegramAutoRegister />
+              <Header />
+              <main>{children}</main>
+              <Footer />
+            </CartProvider>
+          </UserProvider>
         </LangProvider>
       </body>
     </html>

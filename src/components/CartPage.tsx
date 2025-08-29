@@ -10,6 +10,7 @@ import type { CartItem } from '@/types/index';
 import { useLang } from '@/contexts/LangContext';
 import { useMessages } from '@/hooks/useMessages';
 import { useTelegram } from '@/hooks/useTelegram';
+import { useUser } from '@/contexts/UserContext';
 
 const Section = ({ title, children, disabled = false }: { title: string; children: React.ReactNode; disabled?: boolean }) => (
   <section
@@ -32,6 +33,7 @@ export default function CartPage() {
   // Delivery fields disabled
   const [pincode, setPincode] = useState('10115'); // retained if re-enabled
   // const [city, setCity] = useState('Berlin');
+  const { user } = useUser();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -146,24 +148,14 @@ export default function CartPage() {
   }, [canProceed, fulfillment, lang, cart, name, phone, email, notes, total, tg, router, clearCart]);
 
   // Prefill user profile fields (name, phone, email) if inside Telegram and we have saved profile
+  // Prefill from UserContext (single fetch session-wide)
   useEffect(() => {
-    let aborted = false;
-    async function loadProfile() {
-      const id = tg?.initDataUnsafe?.user?.id;
-      if (!id) return;
-      try {
-        const res = await fetch(`/api/user/by-telegram?userId=${encodeURIComponent(String(id))}`, { cache: 'no-store' });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data.ok || !data.user || aborted) return;
-        if (data.user.customerName && !name) setName(data.user.customerName);
-        if (data.user.phone && !phone) setPhone(data.user.phone);
-        if (data.user.email && !email) setEmail(data.user.email);
-      } catch {}
+    if (user) {
+      if (user.customerName && !name) setName(String(user.customerName));
+      if (user.phone && !phone) setPhone(String(user.phone));
+      if (user.email && !email) setEmail(String(user.email));
     }
-    loadProfile();
-    return () => { aborted = true; };
-  }, [tg, name, phone, email]);
+  }, [user, name, phone, email]);
 
   // Telegram MainButton: keep hidden so we use our own button even inside Telegram
   useEffect(() => {
