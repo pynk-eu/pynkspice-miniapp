@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { postOrderToWebhook, type OrderPayload } from '@/lib/sheets';
-import { sendTelegramAdminMessage, formatOrderNotification } from '@/lib/telegram';
+import { sendAdminMessage, formatOrderMessage } from '@/lib/telegramBot';
 
 export async function POST(req: Request) {
   try {
@@ -28,25 +28,20 @@ export async function POST(req: Request) {
     }
 
     // Fire and forget Telegram admin notification (don't block response)
-    let telegramResult: unknown = null;
-    try {
-      const orderId = (() => {
-        if (body && typeof body === 'object' && 'orderId' in body) {
-          const v = (body as Record<string, unknown>).orderId;
-          if (typeof v === 'string' || typeof v === 'number') return v;
-        }
-        return undefined;
-      })();
-      const text = formatOrderNotification({
-        orderId,
-        items: payload.items.map(i => ({ name: i.name, quantity: i.quantity })),
-        total: payload.total,
-      });
-      telegramResult = await sendTelegramAdminMessage(text);
-    } catch (e) {
-      telegramResult = { ok: false, error: e instanceof Error ? e.message : 'unknown error' };
-    }
-
+    const orderId = (() => {
+      if (body && typeof body === 'object' && 'orderId' in body) {
+        const v = (body as Record<string, unknown>).orderId;
+        if (typeof v === 'string' || typeof v === 'number') return v;
+      }
+      return undefined;
+    })();
+    const msg = formatOrderMessage({
+      orderId,
+      items: payload.items.map(i => ({ name: i.name, quantity: i.quantity })),
+      total: payload.total,
+      customerName: payload.customer?.name,
+    });
+    const telegramResult = await sendAdminMessage(msg);
     return NextResponse.json({ ok: true, ...((body && typeof body === 'object') ? (body as Record<string, unknown>) : {}), telegram: telegramResult });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
