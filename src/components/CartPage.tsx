@@ -222,7 +222,7 @@ export default function CartPage() {
                   placeholder={t('cart.name', lang === 'de' ? 'Name' : 'Name')}
                   disabled={formDisabled}
                   required
-                  className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                  className="w-full text-black p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
                 />
               </div>
               <div className="flex flex-col">
@@ -234,7 +234,7 @@ export default function CartPage() {
                   disabled={formDisabled}
                   required
                   aria-invalid={!!phone && !phoneOk}
-                  className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 ${phone && !phoneOk ? 'border-red-500 focus:ring-red-600' : 'focus:ring-pink-600'}`}
+                  className={`w-full text-black p-2.5 border rounded-lg focus:outline-none focus:ring-2 ${phone && !phoneOk ? 'border-red-500 focus:ring-red-600' : 'focus:ring-pink-600'}`}
                 />
                 {phone && !phoneOk && (
                   <p className="text-xs text-red-600 mt-1">{lang === 'de' ? 'Bitte eine gültige Telefonnummer eingeben.' : 'Please enter a valid phone number.'}</p>
@@ -248,7 +248,7 @@ export default function CartPage() {
                   placeholder={t('cart.email', lang === 'de' ? 'E-Mail' : 'Email')}
                   disabled={formDisabled}
                   aria-invalid={!!email && !emailOk}
-                  className={`w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 ${email && !emailOk ? 'border-red-500 focus:ring-red-600' : 'focus:ring-pink-600'}`}
+                  className={`w-full text-black p-2.5 border rounded-lg focus:outline-none focus:ring-2 ${email && !emailOk ? 'border-red-500 focus:ring-red-600' : 'focus:ring-pink-600'}`}
                 />
                 {email && !emailOk && (
                   <p className="text-xs text-red-600 mt-1">{lang === 'de' ? 'Bitte eine gültige E-Mail-Adresse eingeben.' : 'Please enter a valid email address.'}</p>
@@ -265,7 +265,7 @@ export default function CartPage() {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t('cart.notes', lang === 'de' ? 'Notizen hinzufügen (Schärfegrad, ohne Zwiebel/Knoblauch, etc.)' : 'Add notes (spice level, no onion/garlic, etc.)')}
                 disabled={formDisabled}
-                className="w-full min-h-28 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
+                className="w-full text-black min-h-28 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-600"
               />
             </div>
           </Section>
