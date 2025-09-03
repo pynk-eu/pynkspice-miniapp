@@ -31,8 +31,7 @@ export default function CartPage() {
   const [fulfillment, setFulfillment] = useState<'pickup' | 'delivery'>('pickup');
   const [notes, setNotes] = useState('');
   // Delivery fields disabled
-  const [pincode, setPincode] = useState('10115'); // retained if re-enabled
-  // const [city, setCity] = useState('Berlin');
+  // Removed dormant pincode/city state (delivery currently disabled)
   const { user } = useUser();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -58,9 +57,7 @@ export default function CartPage() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
   };
   const emailOk = isValidEmail(email.trim());
-  // const isValidPincode = (v: string) => /^\d{5}$/.test(v.trim());
-  // const pincodeOk = isValidPincode(pincode);
-  // Address fields are disabled for now; require minimal city+pincode when delivery
+  // Delivery address validation omitted (delivery disabled)
   const addressOk = true; // delivery disabled
   const canProceed = canCheckout && nameOk && phoneOk && emailOk && addressOk;
 
@@ -110,8 +107,7 @@ export default function CartPage() {
   clearCart();
   setFulfillment('pickup');
   setNotes('');
-  setPincode('10115');
-  // setCity('Berlin');
+  // (delivery fields cleared – currently disabled)
   setName('');
   setPhone('');
   setEmail('');

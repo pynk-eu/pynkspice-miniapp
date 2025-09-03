@@ -1,0 +1,11 @@
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_method TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'new';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfilled_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_requested_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_rating INT CHECK (review_rating BETWEEN 1 AND 5);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_comment TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_language TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_public_code_unique ON orders(public_code);
+CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC);
+ALTER TABLE orders ADD CONSTRAINT chk_orders_total_nonnegative CHECK (total_cents >= 0);
+ALTER TABLE orders ADD CONSTRAINT chk_orders_status_valid CHECK (status IN ('new','preparing','ready','fulfilled','cancelled'));

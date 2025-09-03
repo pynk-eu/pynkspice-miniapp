@@ -1,48 +1,55 @@
 import { NextResponse } from 'next/server';
-import { postOrderToWebhook, type OrderPayload } from '@/lib/sheets';
 import { sendAdminMessage, formatOrderMessage } from '@/lib/telegramBot';
+import { createOrder } from '@/lib/orders';
+import { IncomingOrderSchema, IncomingOrder } from '../../../lib/validation';
+import { findUserByTelegramId } from '@/lib/users';
+import { sendUserMessage, formatUserOrderConfirmation } from '@/lib/telegramBot';
+
+// Validation moved to zod schema.
 
 export async function POST(req: Request) {
   try {
-    const payload = (await req.json()) as OrderPayload;
-    const url = process.env.ORDERS_WEBHOOK_URL;
-    if (!url) {
-      return NextResponse.json({ ok: false, error: 'ORDERS_WEBHOOK_URL not configured' }, { status: 500 });
-    }
+  const body = await req.json();
+  const parsed = IncomingOrderSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ ok: false, error: 'Invalid payload', issues: parsed.error.issues }, { status: 400 });
+  const payload: IncomingOrder = parsed.data;
 
-    const res = await postOrderToWebhook(url, {
-      ...payload,
-      timestamp: new Date().toISOString(),
+    const created = await createOrder({
+  items: payload.items.map((i: IncomingOrder['items'][number]) => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, name_de: i.name_de, image: i.images?.[0] })),
+      telegramUserId: payload.telegramUserId,
+      customer: payload.customer,
+      notes: payload.notes,
+      deliveryMethod: payload.delivery?.method || 'pickup',
+      totalClient: payload.total,
+      telegramUsername: payload.telegramUsername,
+      telegramFirstName: payload.telegramFirstName,
+      telegramLastName: payload.telegramLastName,
     });
 
-  let body: unknown = null;
-    try {
-      body = await res.json();
-    } catch {
-      // ignore non-JSON bodies
-    }
-
-    if (!res.ok) {
-      const text = body ? JSON.stringify(body) : await res.text();
-      return NextResponse.json({ ok: false, error: `Webhook error: ${res.status} ${text}` }, { status: 500 });
-    }
-
-    // Fire and forget Telegram admin notification (don't block response)
-    const orderId = (() => {
-      if (body && typeof body === 'object' && 'orderId' in body) {
-        const v = (body as Record<string, unknown>).orderId;
-        if (typeof v === 'string' || typeof v === 'number') return v;
-      }
-      return undefined;
-    })();
     const msg = formatOrderMessage({
-      orderId,
-      items: payload.items.map(i => ({ name: i.name, quantity: i.quantity })),
-      total: payload.total,
+      orderId: created.public_code,
+      items: created.items.map(i => ({ name: i.item_name, quantity: i.quantity })),
+      total: created.total_cents / 100,
       customerName: payload.customer?.name,
     });
     const telegramResult = await sendAdminMessage(msg);
-    return NextResponse.json({ ok: true, ...((body && typeof body === 'object') ? (body as Record<string, unknown>) : {}), telegram: telegramResult });
+
+    // Notify user directly if we have chat id
+    if (payload.telegramUserId) {
+      try {
+        const user = await findUserByTelegramId(String(payload.telegramUserId));
+        if (user?.chat_id) {
+          const userText = formatUserOrderConfirmation({
+            orderId: created.public_code,
+            items: created.items.map(i => ({ name: i.item_name, quantity: i.quantity })),
+            total: created.total_cents / 100,
+          });
+            await sendUserMessage(user.chat_id, userText);
+        }
+      } catch {}
+    }
+
+  return NextResponse.json({ ok: true, orderId: created.public_code, id: created.id, total: created.total_cents / 100, createdAt: created.created_at, telegram: telegramResult });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
