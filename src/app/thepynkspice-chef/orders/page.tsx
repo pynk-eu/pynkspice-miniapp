@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminNav from '@/components/AdminNav';
@@ -16,7 +16,7 @@ export default function OrdersPage(){
 	const [error,setError] = useState<string|undefined>();
 	const [updating,setUpdating] = useState<string|null>(null);
 
-	async function load(){
+	const load = useCallback(async () => {
 		setLoading(true);
 		setError(undefined);
 		const r = await fetch('/api/admin/orders',{cache:'no-store'});
@@ -24,8 +24,8 @@ export default function OrdersPage(){
 		const d = await r.json();
 		if(!d.ok) setError(d.error||'Failed to load'); else setOrders(d.orders);
 		setLoading(false);
-	}
-	useEffect(()=>{ load(); },[]);
+	},[router]);
+	useEffect(()=>{ load(); },[load]);
 
 	async function updateStatus(code:string, status:string){
 		setUpdating(code+status);

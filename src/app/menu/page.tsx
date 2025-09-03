@@ -1,13 +1,13 @@
 import { getMenuItems } from '@/lib/data';
 import MenuItemCard from '@/components/MenuItemCard';
 import TelegramGreeting from '@/components/TelegramGreeting';
-import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { isAdminRequest } from '@/lib/adminSession';
 
-export default async function MenuPage({ searchParams }: { searchParams?: Record<string,string|undefined> }) {
+export default async function MenuPage({ searchParams }: { searchParams?: Promise<Record<string,string|undefined>> }) {
+  const params = searchParams ? await searchParams : {};
   const menuItems = await getMenuItems();
-  const offline = searchParams?.offlineOrder === '1';
+  const offline = params.offlineOrder === '1';
   const isAdmin = isAdminRequest();
 
   return (

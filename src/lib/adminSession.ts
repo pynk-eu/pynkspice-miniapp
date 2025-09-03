@@ -1,10 +1,16 @@
 import { cookies } from 'next/headers';
 import { verifyAdminToken } from './adminAuth';
 
+interface ReadonlyRequestCookiesLike {
+	get(name: string): { name: string; value: string } | undefined;
+}
+
 export function isAdminRequest(): boolean {
-	// In Next 15 cookies() returns a read-only wrapper (not a Promise here); adjust if API changes.
-	const c = cookies();
-	// @ts-ignore types may differ based on Next version
-	const token = typeof c.get === 'function' ? c.get('admin_auth')?.value : undefined;
-	return verifyAdminToken(token);
+	try {
+		const c = cookies() as unknown as ReadonlyRequestCookiesLike;
+		const token = c.get('admin_auth')?.value;
+		return verifyAdminToken(token);
+	} catch {
+		return false;
+	}
 }

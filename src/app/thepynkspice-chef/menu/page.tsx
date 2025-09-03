@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import SpicyLevelPicker from '@/components/SpicyLevelPicker';
 import { useRouter } from 'next/navigation';
 import AdminNav from '@/components/AdminNav';
@@ -19,7 +19,15 @@ interface MenuItemFormState {
 
 export default function MenuManagerPage() {
   const router = useRouter();
-  const [items, setItems] = useState<any[]>([]);
+  interface MenuItem {
+    id: number;
+    name_en: string;
+    name_de: string;
+    spicy_level: number;
+    price_cents: number;
+    active: boolean;
+  }
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | undefined>();
   const [creating, setCreating] = useState(false);
@@ -36,7 +44,7 @@ export default function MenuManagerPage() {
     active: true,
   });
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     const r = await fetch('/api/admin/menu-items');
     if (r.status === 401) {
@@ -46,8 +54,8 @@ export default function MenuManagerPage() {
     const d = await r.json();
     if (d.ok) setItems(d.items); else setError(d.error || 'Failed to load');
     setLoading(false);
-  }
-  useEffect(() => { load(); }, []);
+  }, [router]);
+  useEffect(() => { load(); }, [load]);
 
   async function createItem(e: React.FormEvent) {
     e.preventDefault();

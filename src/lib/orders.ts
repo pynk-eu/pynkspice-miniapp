@@ -38,7 +38,6 @@ export interface CreatedOrder {
   }>;
 }
 
-function eurosToCents(v: number) { return Math.round(v * 100); }
 
 export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder> {
   if (!input.items.length) throw new Error('No items');
