@@ -21,6 +21,11 @@ export async function listActiveMenuItems(): Promise<MenuItemRecord[]> {
   return rows as MenuItemRecord[];
 }
 
+export async function listAllMenuItems(): Promise<MenuItemRecord[]> {
+  const rows = await sql`SELECT * FROM menu_items ORDER BY id`;
+  return rows as MenuItemRecord[];
+}
+
 export async function getMenuItemsByIds(ids: number[]): Promise<MenuItemRecord[]> {
   if (!ids.length) return [];
   const rows = await sql`SELECT * FROM menu_items WHERE id = ANY(${ids}::int[]) AND active`;

@@ -8,7 +8,7 @@ export default async function MenuPage({ searchParams }: { searchParams?: Promis
   const params = searchParams ? await searchParams : {};
   const menuItems = await getMenuItems();
   const offline = params.offlineOrder === '1';
-  const isAdmin = isAdminRequest();
+  const isAdmin = await isAdminRequest();
 
   return (
     <div className="container mx-auto p-4">

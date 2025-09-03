@@ -1,5 +1,30 @@
 import { NextResponse } from 'next/server';
 import { extractAdminTokenFromHeaders, verifyAdminToken } from '@/lib/adminAuth';
-import { listActiveMenuItems, createMenuItem } from '@/lib/menu';
-export async function GET(req: Request) { const token = extractAdminTokenFromHeaders(req.headers); if (!verifyAdminToken(token)) return NextResponse.json({ ok:false, error:'Unauthorized' },{status:401}); const items = await listActiveMenuItems(); return NextResponse.json({ ok:true, items }); }
-export async function POST(req: Request) { const token = extractAdminTokenFromHeaders(req.headers); if (!verifyAdminToken(token)) return NextResponse.json({ ok:false, error:'Unauthorized' },{status:401}); const body = await req.json(); for (const f of ['name_en','name_de','price_euros']) if (!body[f]) return NextResponse.json({ ok:false, error:`Missing ${f}` },{status:400}); const item = await createMenuItem({ name_en: body.name_en, name_de: body.name_de, description_en: body.description_en, description_de: body.description_de, ingredients_en: body.ingredients_en||[], ingredients_de: body.ingredients_de||[], spicy_level: body.spicy_level??0, price_euros: Number(body.price_euros), images: body.images||[], active: body.active!==false }); return NextResponse.json({ ok:true, item }); }
+import { listAllMenuItems, createMenuItem } from '@/lib/menu';
+
+export async function GET(req: Request) {
+	const token = extractAdminTokenFromHeaders(req.headers);
+	if (!verifyAdminToken(token)) return NextResponse.json({ ok:false, error:'Unauthorized' },{status:401});
+	const items = await listAllMenuItems();
+	return NextResponse.json({ ok:true, items });
+}
+
+export async function POST(req: Request) {
+	const token = extractAdminTokenFromHeaders(req.headers);
+	if (!verifyAdminToken(token)) return NextResponse.json({ ok:false, error:'Unauthorized' },{status:401});
+	const body = await req.json();
+	for (const f of ['name_en','name_de','price_euros']) if (!body[f]) return NextResponse.json({ ok:false, error:`Missing ${f}` },{status:400});
+	const item = await createMenuItem({
+		name_en: body.name_en,
+		name_de: body.name_de,
+		description_en: body.description_en,
+		description_de: body.description_de,
+		ingredients_en: body.ingredients_en||[],
+		ingredients_de: body.ingredients_de||[],
+		spicy_level: body.spicy_level??0,
+		price_euros: Number(body.price_euros),
+		images: body.images||[],
+		active: body.active!==false
+	});
+	return NextResponse.json({ ok:true, item });
+}
