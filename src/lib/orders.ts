@@ -1,5 +1,5 @@
 import { sql } from './db';
-import { fetchMenuFromPublishedCSV } from './sheets';
+import { getMenuItemsByIds } from './menu';
 import { findUserByTelegramId } from './users';
 
 export interface CreateOrderItemInput {
@@ -42,19 +42,18 @@ function eurosToCents(v: number) { return Math.round(v * 100); }
 
 export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder> {
   if (!input.items.length) throw new Error('No items');
-  const menuUrl = process.env.MENU_SHEET_CSV_URL;
-  if (!menuUrl) throw new Error('Menu source unavailable');
-  const menu = await fetchMenuFromPublishedCSV(menuUrl);
-  const menuMap = new Map<number, { price: number; name: { en: string; de: string }; images: string[] }>();
-  for (const m of menu) menuMap.set(m.id, { price: m.price, name: m.name, images: m.images });
+  const ids = input.items.map(i => typeof i.id === 'string' ? Number(i.id) : (i.id as number));
+  const menu = await getMenuItemsByIds(ids);
+  const menuMap = new Map<number, { price_cents: number; name_en: string; name_de: string; images: string[] }>();
+  for (const m of menu) menuMap.set(m.id, { price_cents: m.price_cents, name_en: m.name_en, name_de: m.name_de, images: m.images });
   const normalized = input.items.map(i => {
     const idNumRaw = typeof i.id === 'string' ? Number(i.id) : i.id;
     const idNum = Number.isFinite(idNumRaw) ? (idNumRaw as number) : -1;
-    if (!menuMap.has(idNum)) throw new Error(`Item not found: ${i.id}`);
-    const m = menuMap.get(idNum)!;
-    const unitCents = eurosToCents(m.price);
+  if (!menuMap.has(idNum)) throw new Error(`Item not found or inactive: ${i.id}`);
+  const m = menuMap.get(idNum)!;
+  const unitCents = m.price_cents;
     const line = unitCents * i.quantity;
-    return { item_code: String(i.id ?? ''), name: m.name.en, name_de: m.name.de, unit_price_cents: unitCents, quantity: i.quantity, line_total_cents: line, image_url: (i.image || m.images[0]) || null };
+  return { item_code: String(i.id ?? ''), name: m.name_en, name_de: m.name_de, unit_price_cents: unitCents, quantity: i.quantity, line_total_cents: line, image_url: (i.image || m.images[0]) || null };
   });
   const total = normalized.reduce((s, n) => s + n.line_total_cents, 0);
   let userId: number | null = null;

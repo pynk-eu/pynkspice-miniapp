@@ -1,5 +1,5 @@
 import type { MenuItem } from '@/types/index';
-import { fetchMenuFromPublishedCSV } from '@/lib/sheets';
+import { listActiveMenuItems } from '@/lib/menu';
 
 const fallbackMenuItems: MenuItem[] = [
   {
@@ -48,14 +48,20 @@ const fallbackMenuItems: MenuItem[] = [
 ];
 
 export const getMenuItems = async (): Promise<MenuItem[]> => {
-  const url = process.env.MENU_SHEET_CSV_URL;
-  if (url) {
-    try {
-      const items = await fetchMenuFromPublishedCSV(url);
-      if (items.length) return items;
-    } catch (err) {
-      console.error('Failed to load menu from Google Sheets, falling back to local data', err);
+  try {
+    const dbItems = await listActiveMenuItems();
+    if (dbItems.length) {
+      return dbItems.map(mi => ({
+        id: mi.id,
+        name: { en: mi.name_en, de: mi.name_de },
+        description: { en: mi.description_en || '', de: mi.description_de || '' },
+        ingredients: { en: mi.ingredients_en, de: mi.ingredients_de },
+        price: mi.price_cents / 100,
+        images: mi.images.length ? mi.images : ['/thePynkSpice_logo.jpg'],
+      }));
     }
+  } catch (e) {
+    console.error('Failed to load menu from DB, using fallback', e);
   }
   return fallbackMenuItems;
 };

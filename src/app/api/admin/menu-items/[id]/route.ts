@@ -1,0 +1,5 @@
+import { NextResponse } from 'next/server';
+import { extractAdminTokenFromHeaders, verifyAdminToken } from '@/lib/adminAuth';
+import { updateMenuItem, deleteMenuItem } from '@/lib/menu';
+export async function PATCH(req: Request, { params }: { params: { id: string } }) { const token = extractAdminTokenFromHeaders(req.headers); if (!verifyAdminToken(token)) return NextResponse.json({ ok:false, error:'Unauthorized' },{status:401}); const body = await req.json(); const id = Number(params.id); const updated = await updateMenuItem({ id, ...body }); if (!updated) return NextResponse.json({ ok:false, error:'Not found' },{status:404}); return NextResponse.json({ ok:true, item: updated }); }
+export async function DELETE(req: Request, { params }: { params: { id: string } }) { const token = extractAdminTokenFromHeaders(req.headers); if (!verifyAdminToken(token)) return NextResponse.json({ ok:false, error:'Unauthorized' },{status:401}); const id = Number(params.id); const ok = await deleteMenuItem(id); if (!ok) return NextResponse.json({ ok:false, error:'Not found' },{status:404}); return NextResponse.json({ ok:true }); }
