@@ -157,35 +157,4 @@ export async function fetchMenuFromPublishedCSV(url: string): Promise<MenuItem[]
   return items;
 }
 
-export type OrderPayload = {
-  items: Array<{ id: number; name: string; price: number; quantity: number }>;
-  delivery: {
-    method: 'pickup' | 'delivery';
-    address?: {
-      street?: string;
-      number?: string;
-      pincode?: string;
-      city?: string;
-    };
-  };
-  telegramUserId?: string | number;
-  customer?: {
-    name?: string;
-    phone?: string;
-    email?: string;
-    language?: 'en' | 'de';
-  };
-  notes?: string;
-  total: number;
-  timestamp?: string;
-};
-
-// This posts order data to a Google Apps Script Web App (or any webhook) URL provided via env.
-export async function postOrderToWebhook(url: string, payload: OrderPayload): Promise<Response> {
-  return fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    cache: 'no-store',
-  });
-}
+// (Legacy order webhook + payload type removed – DB now source of truth.)

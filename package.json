@@ -9,10 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "typescript-telegram-bot-api": "^0.8.0"
+    "typescript-telegram-bot-api": "^0.8.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
