@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import SpicyLevelPicker from '@/components/SpicyLevelPicker';
 import { useRouter } from 'next/navigation';
+import AdminNav from '@/components/AdminNav';
 
 interface MenuItemFormState {
   name_en: string;
@@ -90,15 +91,12 @@ export default function MenuManagerPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-8 space-y-10">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="space-y-4">
         <div>
           <h1 className="text-3xl font-bold">Menu Items</h1>
           <p className="text-gray-600 text-sm">Add and manage dishes shown to customers.</p>
         </div>
-        <button
-          onClick={() => router.push('/thepynkspice-chef')}
-          className="text-sm text-pink-600 hover:underline"
-        >Back to Dashboard</button>
+        <AdminNav />
       </div>
 
       <section className="bg-white border border-gray-100 rounded-xl shadow-sm p-6">

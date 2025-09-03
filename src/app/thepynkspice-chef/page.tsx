@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isAdminRequest } from '@/lib/adminSession';
+import AdminNav from '@/components/AdminNav';
 
 export default function AdminDashboard() {
   if (!isAdminRequest()) redirect('/thepynkspice-chef/login');
@@ -10,6 +11,7 @@ export default function AdminDashboard() {
         <h1 className="text-3xl font-bold">Chef Dashboard</h1>
         <p className="text-gray-600">Manage your restaurant data.</p>
       </header>
+      <AdminNav />
       <nav className="grid gap-6 sm:grid-cols-2">
         <Link href="/thepynkspice-chef/menu" className="group block rounded-xl border border-gray-200 p-6 bg-white shadow-sm hover:shadow transition">
           <h2 className="font-semibold text-lg mb-1 group-hover:text-pink-600">Menu Items</h2>
