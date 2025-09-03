@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminNav from '@/components/AdminNav';
@@ -37,6 +37,15 @@ export default function OrdersPage(){
 		setUpdating(null);
 	}
 
+	// Map status to subtle background + border colors
+	const statusStyles: Record<string,string> = useMemo(()=>({
+		new: 'bg-white border-gray-200',
+		preparing: 'bg-amber-50 border-amber-200',
+		ready: 'bg-indigo-50 border-indigo-200',
+		fulfilled: 'bg-emerald-50 border-emerald-200',
+		cancelled: 'bg-red-50 border-red-200',
+	}),[]);
+
 	return (
 		<div className="max-w-7xl mx-auto p-8 space-y-8">
 			<AdminNav />
@@ -57,8 +66,10 @@ export default function OrdersPage(){
 				<p className="text-sm text-gray-500">No orders yet.</p>
 			) : (
 				<div className="space-y-6">
-					{orders.map(o => (
-						<div key={o.id} className="border rounded-xl bg-white shadow-sm p-5">
+					{orders.map(o => {
+						const cls = statusStyles[o.status] || 'bg-white border-gray-200';
+						return (
+						<div key={o.id} className={`border rounded-xl shadow-sm p-5 transition ${cls}`}>
 							<div className="flex flex-col md:flex-row md:items-start gap-4 justify-between">
 								<div className="space-y-1">
 									<div className="flex items-center gap-3 flex-wrap">
@@ -100,7 +111,7 @@ export default function OrdersPage(){
 								</table>
 							</div>
 						</div>
-					))}
+					)})}
 				</div>
 			)}
 		</div>
