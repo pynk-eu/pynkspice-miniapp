@@ -28,7 +28,7 @@ interface OrderRow {
 
 // GET /api/admin/orders -> list recent orders with items & basic customer info
 export async function GET() {
-  if (!isAdminRequest()) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  if (!(await isAdminRequest())) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   const rows = await sql`
     SELECT o.id, o.public_code, o.total_cents, o.created_at, o.status,
            o.raw_customer_name, o.raw_customer_phone, o.raw_customer_email, o.delivery_method, o.notes,
@@ -70,7 +70,7 @@ export async function GET() {
 
 // PATCH /api/admin/orders (update status) body: { code, status }
 export async function PATCH(req: Request) {
-  if (!isAdminRequest()) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  if (!(await isAdminRequest())) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json();
     const { code, status } = body || {};
@@ -87,7 +87,7 @@ export async function PATCH(req: Request) {
 // POST /api/admin/orders/offline  body: { customerName, phone?, email?, deliveryMethod, items:[{id, quantity}], notes? }
 interface OfflineOrderItemInput { id: number; quantity: number }
 export async function POST(req: Request) {
-  if (!isAdminRequest()) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  if (!(await isAdminRequest())) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json();
     const { customerName, phone, email, deliveryMethod, items, notes } = body || {} as {

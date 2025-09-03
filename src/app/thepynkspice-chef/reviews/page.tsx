@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 import { isAdminRequest } from '@/lib/adminSession';
 import AdminNav from '@/components/AdminNav';
 
-export default function ReviewsPage(){
-	if(!isAdminRequest()) redirect('/thepynkspice-chef/login');
+export default async function ReviewsPage(){
+	if(!(await isAdminRequest())) redirect('/thepynkspice-chef/login');
 	return (
 		<div className="max-w-5xl mx-auto p-8 space-y-6">
 			<div className="space-y-4">

@@ -3,8 +3,8 @@ import { redirect } from 'next/navigation';
 import { isAdminRequest } from '@/lib/adminSession';
 import AdminNav from '@/components/AdminNav';
 
-export default function AdminDashboard() {
-  if (!isAdminRequest()) redirect('/thepynkspice-chef/login');
+export default async function AdminDashboard() {
+  if (!(await isAdminRequest())) redirect('/thepynkspice-chef/login');
   return (
     <div className="max-w-4xl mx-auto p-8 space-y-10">
       <header className="space-y-2">
