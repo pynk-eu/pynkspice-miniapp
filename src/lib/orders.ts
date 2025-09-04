@@ -1,6 +1,7 @@
 import { sql } from './db';
 import { getMenuItemsByIds } from './menu';
 import { findUserByTelegramId } from './users';
+import { sendUserMessage, formatUserStatusUpdate } from './telegramBot';
 
 export interface CreateOrderItemInput {
   id?: number | string; // optional original id/code
@@ -139,7 +140,18 @@ export async function updateOrderStatus(publicCode: string, status: string) {
     WHERE public_code = ${publicCode}
     RETURNING id, public_code, status, telegram_user_id;
   `;
-  return (rows as { id: number; public_code: string; status: string; telegram_user_id: string | null }[])[0] || null;
+  const updated = (rows as { id: number; public_code: string; status: string; telegram_user_id: string | null }[])[0] || null;
+  if (updated && updated.telegram_user_id) {
+    // Fetch chat_id (stored in app_users table) and send status update
+    const userRows = await sql`SELECT chat_id FROM app_users WHERE telegram_user_id = ${updated.telegram_user_id} LIMIT 1` as { chat_id: string | null }[];
+    const chatId = userRows[0]?.chat_id;
+    if (chatId) {
+      const text = formatUserStatusUpdate(updated.public_code, status);
+      // Fire and forget; don't block order update on Telegram errors
+      sendUserMessage(chatId, text).catch(()=>{});
+    }
+  }
+  return updated;
 }
 
 export async function requestReview(publicCode: string) {
